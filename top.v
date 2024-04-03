@@ -7,13 +7,22 @@
 //----------------------------------------------------------------------
 // Code Revision History:
 // Ver:		| Author 	| Mod. Date		| Changes Made:
-// v1.0.0	| xxx		| xx/xx/20xx	| Initial version
+// v1.0.0	| R.T		| 2024/04/03	| Initial version
 //**********************************************************************
 
 module top (
 	clk,
 	rstn,
 	
+    enc0_a,
+    enc0_b,
+    enc1_a,
+    enc1_b,
+    enc2_a,
+    enc2_b,
+    enc3_a,
+    enc3_b,   
+
 	u_valid_o,
 	u_chn_o,
 	u_data_o
@@ -34,6 +43,15 @@ module top (
 // --- input ---	
 	input wire 						clk;
 	input wire 					 	rstn;
+
+    input wire                      enc0_a;
+    input wire                      enc0_b;
+    input wire                      enc1_a;
+    input wire                      enc1_b;
+    input wire                      enc2_a;
+    input wire                      enc2_b;
+    input wire                      enc3_a;
+    input wire                      enc3_b;
 	
 // --- output ---	
 	output wire					 	u_valid_o;
@@ -43,6 +61,16 @@ module top (
 //**********************************************************************
 // --- Internal Signal Declaration
 //**********************************************************************
+    wire                        rpm0_ready;
+    wire                        rpm1_ready;
+    wire                        rpm2_ready;
+    wire                        rpm3_ready;
+
+	wire    [DATA_WIDTH-1:0]    rpm0_data_o;
+    wire    [DATA_WIDTH-1:0]    rpm1_data_o;
+    wire    [DATA_WIDTH-1:0]    rpm2_data_o;
+    wire    [DATA_WIDTH-1:0]    rpm3_data_o;
+    
 	wire 					 	param_valid_i/*synthesis syn_keep=1*/;
 	wire 	[CHN_WIDTH-1:0] 	param_chn_i/*synthesis syn_keep=1*/;
 	wire 	[DATA_WIDTH-1:0] 	param_a1_i/*synthesis syn_keep=1*/;
@@ -63,7 +91,57 @@ module top (
 
 
 //**********************************************************************
-// --- Module: Controller_3p3z
+// --- Module: RPM_Reader
+// --- Description:
+//		1. Quadruple the encoder's pulse
+//		2. Calculate the RPM
+//**********************************************************************
+    RPM_Reader RPM_Reader_inst0(
+        .clk			( clk 			),
+        .rstn			( rstn			),
+        
+        .enc_a          ( enc0_a        ),
+        .enc_b          ( enc0_b        ),
+
+        .rpm_valid_o    ( rpm0_ready    ),
+        .rpm_data_o     ( rpm0_data_o   )
+    );
+
+    RPM_Reader RPM_Reader_inst1(
+        .clk			( clk 			),
+        .rstn			( rstn			),
+        
+        .enc_a          ( enc1_a        ),
+        .enc_b          ( enc1_b        ),
+
+        .rpm_valid_o    ( rpm1_ready    ),
+        .rpm_data_o     ( rpm1_data_o   )
+    );
+
+    RPM_Reader RPM_Reader_inst2(
+        .clk			( clk 			),
+        .rstn			( rstn			),
+        
+        .enc_a          ( enc2_a        ),
+        .enc_b          ( enc2_b        ),
+
+        .rpm_valid_o    ( rpm2_ready    ),
+        .rpm_data_o     ( rpm2_data_o   )
+    );
+
+    RPM_Reader RPM_Reader_inst3(
+        .clk			( clk 			),
+        .rstn			( rstn			),
+        
+        .enc_a          ( enc3_a        ),
+        .enc_b          ( enc3_b        ),
+
+        .rpm_valid_o    ( rpm3_ready    ),
+        .rpm_data_o     ( rpm3_data_o   )
+    );
+
+//**********************************************************************
+// --- Module: PID_core
 // --- Description:	
 //		3-pole/3-zero formula: 
 //				U(n) = b0*E(n) + b1*E(n-1) + b2*E(n-2) + a1*U(n-1)+a2*U(n-2) + a3*U(n-3).
@@ -95,14 +173,24 @@ module top (
 	);
 	
 //**********************************************************************
-// --- Module: input_gen 
+// --- Module: PID_input_processor
 // --- Description:	
-// 			1. parameter input simulation
-// 			2. input data generator (with 3 channels) simulation
+// 			1. parameter input 
+// 			2. input data from RPM reader
 //**********************************************************************
 	PID_Input_Processor   PID_Input_Processor_inst(
 		.clk			( clk 			),
 		.rstn			( rstn			),
+
+        .rpm0_ready     ( rpm0_ready    ),
+        .rpm1_ready     ( rpm1_ready    ),
+        .rpm2_ready     ( rpm2_ready    ),
+        .rpm3_ready     ( rpm3_ready    ),
+
+        .rpm0_data_o    ( rpm0_data_o   ),
+        .rpm1_data_o    ( rpm1_data_o   ),
+        .rpm2_data_o    ( rpm2_data_o   ),
+        .rpm3_data_o    ( rpm3_data_o   ),
 		
 		.param_valid_i	( param_valid_i	),
 		.param_chn_i	( param_chn_i	),
