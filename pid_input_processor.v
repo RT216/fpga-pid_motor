@@ -3,39 +3,49 @@
 // 	Project: TDPS project
 //	File: pid_ip_data_controller.v
 // 	Description: input signals generator for PID Controller
-//	Author: XXX
+//	Author: Ruiqi Tang
 //  Timestamp: 
 //----------------------------------------------------------------------
 // Code Revision History:
 // Ver:		| Author 	| Mod. Date		| Changes Made:
-// v1.0.0	| XXX		| XX/XX/20XX	| Initial version
+// v1.0.0	| R.T.		| 2024/04/02	| Initial version
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
 module PID_Input_Processor(
-		clk, 
-		rstn,
-		
-		param_valid_i,
-		param_chn_i,
-		param_a1_i,
-		param_a2_i,
-		param_a3_i,
-		param_b0_i,
-		param_b1_i,
-		param_b2_i,
-		param_max_i,
-		param_min_i,
-		
-		data_valid_i,
-		data_chn_i,
-		data_fdb_i,
-		data_ref_i,
-		tready_o,
-		
-		u_valid_o,
-		u_chn_o,
-		u_data_o
+    clk, 
+    rstn,
+
+    rpm0_ready,
+    rpm1_ready,
+    rpm2_ready,
+    rpm3_ready,
+
+    rpm0_data_o,
+    rpm1_data_o,
+    rpm2_data_o,
+    rpm3_data_o,
+    
+    param_valid_i,
+    param_chn_i,
+    param_a1_i,
+    param_a2_i,
+    param_a3_i,
+    param_b0_i,
+    param_b1_i,
+    param_b2_i,
+    param_max_i,
+    param_min_i,
+    
+    data_valid_i,
+    data_chn_i,
+    data_fdb_i,
+    data_ref_i,
+    tready_o,
+    
+    u_valid_o,
+    u_chn_o,
+    u_data_o
 		
 ) /* synthesis syn_preserve=1*/;
 
@@ -45,7 +55,7 @@ module PID_Input_Processor(
 	parameter DATA_WIDTH = 16;
 	
 	parameter NUM_CHN = 4;
-	localparam CHN_WIDTH = (NUM_CHN>1)? $clog2(NUM_CHN):1;
+	localparam CHN_WIDTH = (NUM_CHN>1)? $clog2(NUM_CHN):1; //bug?
 	
 	localparam NUM_CYCLE = 20;
 
@@ -54,6 +64,16 @@ module PID_Input_Processor(
 //**********************************************************************
 	input wire 						clk;
 	input wire 					 	rstn;
+
+    input wire                      rpm0_ready;
+    input wire                      rpm1_ready;
+    input wire                      rpm2_ready;
+    input wire                      rpm3_ready;
+
+    input wire  [DATA_WIDTH-1:0]    rpm0_data_o;
+    input wire  [DATA_WIDTH-1:0]    rpm1_data_o;
+    input wire  [DATA_WIDTH-1:0]    rpm2_data_o;
+    input wire  [DATA_WIDTH-1:0]    rpm3_data_o;
 
 	output reg 					 	param_valid_i;
 	output reg 	[CHN_WIDTH-1:0] 	param_chn_i;
@@ -90,10 +110,47 @@ module PID_Input_Processor(
 	reg 	[DATA_WIDTH-1:0]	u_data_ch0;
 	reg 	[DATA_WIDTH-1:0]	u_data_ch1;
 	reg 	[DATA_WIDTH-1:0]	u_data_ch2;
+    reg     [DATA_WIDTH-1:0]    u_data_ch3;
+
+    reg     [DATA_WIDTH-1:0]    rpm_data_ch0;
+    reg     [DATA_WIDTH-1:0]    rpm_data_ch1;
+    reg     [DATA_WIDTH-1:0]    rpm_data_ch2;
+    reg     [DATA_WIDTH-1:0]    rpm_data_ch3;
 
 //**********************************************************************
 // --- Main core
 //**********************************************************************
+// --- rpm sample & holding---
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn) begin
+            rpm_data_ch0 <= 0;
+            rpm_data_ch1 <= 0;
+            rpm_data_ch2 <= 0;
+            rpm_data_ch3 <= 0;
+        end
+        else begin
+            if (rpm0_ready == 1'b1)
+                rpm_data_ch0 <= rpm0_data_o;
+            else
+                rpm_data_ch0 <= rpm_data_ch0;
+
+            if (rpm1_ready == 1'b1)
+                rpm_data_ch1 <= rpm1_data_o;
+            else
+                rpm_data_ch1 <= rpm_data_ch1;
+
+            if (rpm2_ready == 1'b1)
+                rpm_data_ch2 <= rpm2_data_o;
+            else
+                rpm_data_ch2 <= rpm_data_ch2;
+                
+            if (rpm3_ready == 1'b1)
+                rpm_data_ch3 <= rpm3_data_o;
+            else
+                rpm_data_ch3 <= rpm_data_ch3;
+        end
+    end
+
 // --- input parameter setting---
 	always @(posedge clk or negedge rstn) begin
 		if(!rstn) begin
@@ -113,7 +170,7 @@ module PID_Input_Processor(
 			param_valid_i <= 0;
 		end
 		else begin
-			param_valid <= ((cnt_cycle >= 5) && (cnt_cycle < NUM_CHN+5)) ? 1'b1:1'b0;
+			param_valid <= ((cnt_cycle >= 5) && (cnt_cycle < NUM_CHN+5)) ? 1'b1:1'b0; //  5 <= cnt_cycle < 9
 			param_valid_i <= param_valid;
 		end
 	end
@@ -149,44 +206,55 @@ module PID_Input_Processor(
 				param_b0_i <= 26;
 				param_b1_i <= 13;
 				param_b2_i <= 13;
-				param_max_i <= 1000;
-				param_min_i <= -1000;
+				param_max_i <= 1500;
+				param_min_i <= -200;
 			end
 			1: begin
-				param_a1_i <= 127;
-				param_a2_i <= 63;
-				param_a3_i <= 63;
-				param_b0_i <= 25;
-				param_b1_i <= 12;
-				param_b2_i <= 12;
-				param_max_i <= 200;
+				param_a1_i <= 128;
+				param_a2_i <= 64;
+				param_a3_i <= 64;
+				param_b0_i <= 26;
+				param_b1_i <= 13;
+				param_b2_i <= 13;
+				param_max_i <= 1500;
 				param_min_i <= -200;
 			end
 			2: begin
-				param_a1_i <= 127;
-				param_a2_i <= 50;
-				param_a3_i <= 25;
-				param_b0_i <= 25;
-				param_b1_i <= 12;
-				param_b2_i <= 12;
-				param_max_i <= 300;
-				param_min_i <= -300;
+				param_a1_i <= 128;
+				param_a2_i <= 64;
+				param_a3_i <= 64;
+				param_b0_i <= 26;
+				param_b1_i <= 13;
+				param_b2_i <= 13;
+				param_max_i <= 1500;
+				param_min_i <= -200;
+			end
+            3: begin
+				param_a1_i <= 128;
+				param_a2_i <= 64;
+				param_a3_i <= 64;
+				param_b0_i <= 26;
+				param_b1_i <= 13;
+				param_b2_i <= 13;
+				param_max_i <=1500;
+				param_min_i <= -200;
 			end
 			default: begin
-				param_a1_i <= 127;
-				param_a2_i <= 50;
-				param_a3_i <= 25;
-				param_b0_i <= 25;
-				param_b1_i <= 12;
-				param_b2_i <= 12;
-				param_max_i <= 300;
-				param_min_i <= -300;
+				param_a1_i <= 128;
+				param_a2_i <= 64;
+				param_a3_i <= 64;
+				param_b0_i <= 26;
+				param_b1_i <= 13;
+				param_b2_i <= 13;
+				param_max_i <= 1500;
+				param_min_i <= -200;
 			end
 		endcase
 	end
 	
 	
 // ---generate data input --- 
+    // ---start data load after 10 clks---
 	always @(posedge clk or negedge rstn) begin
 		if(!rstn) begin
 			data_load <= 0;
@@ -196,6 +264,7 @@ module PID_Input_Processor(
 		end
 	end
 
+    // ---data cycle (channel) counter---
 	always @(posedge clk or negedge rstn) begin
 		if(!rstn) begin
 			data_cycle <= NUM_CHN;
@@ -208,40 +277,48 @@ module PID_Input_Processor(
 		end
 	end
 
-	
+	// ---feed data input---
 	always @(*) begin
 		if(data_cycle == NUM_CHN) begin
 			data_valid_i <= 1'b0;
 			data_chn_i <= NUM_CHN-1;
 			data_fdb_i <= 0;
-			data_ref_i <= 800;
+			data_ref_i <= 0;
 		end
 		else if(data_cycle == 0) begin
 			data_valid_i <= 1'b1;
 			data_chn_i <= 0;
 			data_fdb_i <= u_data_ch0;
-			data_ref_i <= 800;
+			data_ref_i <= rpm_data_ch0;
 		end
 		else if(data_cycle == 1)  begin
 			data_valid_i <= 1'b1;
 			data_chn_i <= 1;
 			data_fdb_i <= u_data_ch1;
-			data_ref_i <= 800;
+			data_ref_i <= rpm_data_ch1;
+		end
+        else if(data_cycle == 2)  begin
+			data_valid_i <= 1'b1;
+			data_chn_i <= 2;
+			data_fdb_i <= u_data_ch2;
+			data_ref_i <= rpm_data_ch2;
 		end
 		else begin
 			data_valid_i <= 1'b1;
 			data_chn_i <= data_cycle;
-			data_fdb_i <= u_data_ch2;
-			data_ref_i <= 800;
+			data_fdb_i <= u_data_ch3;
+			data_ref_i <= rpm_data_ch3;
 		end
 			
 	end
 
+    // ---handle the PID output data---
 	always @(posedge clk or negedge rstn) begin
 		if(!rstn) begin
 			u_data_ch0 <= 0;
 			u_data_ch1 <= 0;
 			u_data_ch2 <= 0;
+            u_data_ch3 <= 0;
 		end
 		else if(u_valid_o == 1'b1 && u_chn_o == 0) begin
 			u_data_ch0 <= u_data_o;
@@ -252,6 +329,9 @@ module PID_Input_Processor(
 		else if(u_valid_o == 1'b1 && u_chn_o == 2) begin
 			u_data_ch2 <= u_data_o;
 		end
+        else if(u_valid_o == 1'b1 && u_chn_o == 3) begin
+            u_data_ch3 <= u_data_o;
+        end
 	end
 
 

@@ -8,6 +8,7 @@
 // Code Revision History:
 // Ver:		| Author 	| Mod. Date		| Changes Made:
 // v1.0.0	| R.T.		| 2024/03/09	| Initial version
+// v1.0.1	| R.T.		| 2024/04/02	| Fixed the data width problem
 //**********************************************************************
 
 module RPM_reader(clk,
@@ -20,7 +21,7 @@ module RPM_reader(clk,
     //**********************************************************************
     // --- Parameter
     //**********************************************************************
-    parameter DATA_WIDTH = 32;
+    parameter DATA_WIDTH = 16;
     localparam CLK_FREQ  = 10_000_000;
     
     //**********************************************************************
@@ -33,13 +34,13 @@ module RPM_reader(clk,
     input wire                      enc_b;
     
     output reg                      rpm_valid_o;
-    output reg  [31:0]    rpm_data_o;
+    output reg  [DATA_WIDTH-1:0]    rpm_data_o;
     
     //**********************************************************************
     // --- Internal Signal Declaration
     //**********************************************************************
     
-    reg       [3:0]                counter_m0;     // count for the encoder's pulse
+    reg       [3:0]                 counter_m0;     // count for the encoder's pulse
     reg       [15:0]                counter_m1;     // count for a high freq (100k)
     
     reg                             counter_clear;
@@ -103,9 +104,9 @@ module RPM_reader(clk,
         end
         else begin
             if (counter_m0 > 3 || counter_m1 > 8192) begin
-                counter_clear  <= 1'b1;
-                rpm_valid_o    <= 1'b1;
-                rpm_data_o     <= counter_m0 * 367647 / counter_m1;
+                counter_clear <= 1'b1;
+                rpm_valid_o   <= 1'b1;
+                rpm_data_o    <=  {28'b0, counter_m0} * 32'd367647 / {16'b0, counter_m1};
             end
             else begin
                 counter_clear <= 0;
