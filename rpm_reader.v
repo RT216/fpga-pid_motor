@@ -1,14 +1,14 @@
 //**********************************************************************
-// 	Project: TDPS
-//	File: rpm_reader.v
-// 	Description: convert the input pulse to the rpm data
-//	Author: Ruiqi Tang
+//  Project: TDPS
+//  File: rpm_reader.v
+//  Description: convert the input pulse to the rpm data
+//  Author: Ruiqi Tang
 //  Timestamp:
 //----------------------------------------------------------------------
 // Code Revision History:
-// Ver:		| Author 	| Mod. Date		| Changes Made:
-// v1.0.0	| R.T.		| 2024/03/09	| Initial version
-// v1.0.1	| R.T.		| 2024/04/02	| Fixed the data width problem
+// Ver:     | Author    | Mod. Date     | Changes Made:
+// v1.0.0   | R.T.      | 2024/03/09    | Initial version
+// v1.0.1   | R.T.      | 2024/04/02    | Fixed the data width problem
 //**********************************************************************
 
 module RPM_reader(clk,
@@ -18,15 +18,15 @@ module RPM_reader(clk,
                   rpm_valid_o,
                   rpm_data_o);
     
-    //**********************************************************************
-    // --- Parameter
-    //**********************************************************************
+//**********************************************************************
+// --- Parameter
+//**********************************************************************
     parameter DATA_WIDTH = 16;
     localparam CLK_FREQ  = 10_000_000;
     
-    //**********************************************************************
-    // --- Input/Output Declaration
-    //**********************************************************************
+//**********************************************************************
+// --- Input/Output Declaration
+//**********************************************************************
     input wire                      clk;
     input wire                      rstn;
     
@@ -36,9 +36,9 @@ module RPM_reader(clk,
     output reg                      rpm_valid_o;
     output reg  [DATA_WIDTH-1:0]    rpm_data_o;
     
-    //**********************************************************************
-    // --- Internal Signal Declaration
-    //**********************************************************************
+//**********************************************************************
+// --- Internal Signal Declaration
+//**********************************************************************
     
     reg       [3:0]                 counter_m0;     // count for the encoder's pulse
     reg       [15:0]                counter_m1;     // count for a high freq (100k)
@@ -51,10 +51,10 @@ module RPM_reader(clk,
     reg                             quadrupled_pulse;
     
     
-    //**********************************************************************
-    // --- Main Core
-    //**********************************************************************
-    // --- Encoder frequency quadrupling
+//**********************************************************************
+// --- Main Core
+//**********************************************************************
+// --- Encoder frequency quadrupling
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
             current_enc_a    <= 0;
@@ -75,7 +75,7 @@ module RPM_reader(clk,
         end
     end
     
-    // --- Counter (M0) for encoder's pulse
+// --- Counter (M0) for encoder's pulse
     always @(posedge quadrupled_pulse or negedge rstn or posedge counter_clear) begin
         if (!rstn || counter_clear) begin
             counter_m0 <= 0;
@@ -85,7 +85,7 @@ module RPM_reader(clk,
         end
     end
     
-    // --- Counter (M1) for a high freq (clk/10k)
+// --- Counter (M1) for a high freq (clk/10k)
     always @(posedge clk or negedge rstn or posedge counter_clear) begin
         if (!rstn || counter_clear) begin
             counter_m1 <= 0;
@@ -95,7 +95,7 @@ module RPM_reader(clk,
         end
     end
     
-    // --- RPM calculation
+// --- RPM calculation
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
             rpm_valid_o   <= 0;
