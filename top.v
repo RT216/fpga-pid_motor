@@ -8,6 +8,8 @@
 // Code Revision History:
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T       | 2024/04/03    | Initial version
+// v1.1.0   | R.T       | 2024/04/05    | Update interface for 
+//                                      | PID_i/p_proc, RPM_reader
 //**********************************************************************
 
 module top (
@@ -61,6 +63,8 @@ module top (
 //**********************************************************************
 // --- Internal Signal Declaration
 //**********************************************************************
+    wire                        sample_clk;
+
     wire                        rpm0_ready;
     wire                        rpm1_ready;
     wire                        rpm2_ready;
@@ -98,6 +102,7 @@ module top (
 //**********************************************************************
     RPM_Reader RPM_Reader_inst0(
         .clk            ( clk           ),
+        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc0_a        ),
@@ -109,6 +114,7 @@ module top (
 
     RPM_Reader RPM_Reader_inst1(
         .clk            ( clk           ),
+        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc1_a        ),
@@ -120,6 +126,7 @@ module top (
 
     RPM_Reader RPM_Reader_inst2(
         .clk            ( clk           ),
+        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc2_a        ),
@@ -131,6 +138,7 @@ module top (
 
     RPM_Reader RPM_Reader_inst3(
         .clk            ( clk           ),
+        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc3_a        ),
@@ -180,39 +188,39 @@ module top (
 //**********************************************************************
     PID_Input_Processor   PID_Input_Processor_inst(
         .clk            ( clk           ),
-        .rstn           ( rstn          ),
+        .rstn           ( rstn           ),
 
-        .rpm0_ready     ( rpm0_ready    ),
-        .rpm1_ready     ( rpm1_ready    ),
-        .rpm2_ready     ( rpm2_ready    ),
-        .rpm3_ready     ( rpm3_ready    ),
+        .rpm0_ready     ( rpm0_ready     ),
+        .rpm1_ready     ( rpm1_ready     ),
+        .rpm2_ready     ( rpm2_ready     ),
+        .rpm3_ready     ( rpm3_ready     ),
 
-        .rpm0_data_o    ( rpm0_data_o   ),
-        .rpm1_data_o    ( rpm1_data_o   ),
-        .rpm2_data_o    ( rpm2_data_o   ),
-        .rpm3_data_o    ( rpm3_data_o   ),
+        .rpm0_data_o    ( rpm0_data_o    ),
+        .rpm1_data_o    ( rpm1_data_o    ),
+        .rpm2_data_o    ( rpm2_data_o    ),
+        .rpm3_data_o    ( rpm3_data_o    ),
 
-        .param_valid_i  ( param_valid_i ),
-        .param_chn_i    ( param_chn_i   ),
-        .param_a1_i     ( param_a1_i    ),
-        .param_a2_i     ( param_a2_i    ),
-        .param_a3_i     ( param_a3_i    ),
-        .param_b0_i     ( param_b0_i    ),
-        .param_b1_i     ( param_b1_i    ),
-        .param_b2_i     ( param_b2_i    ),
-        .param_max_i    ( param_max_i   ),
-        .param_min_i    ( param_min_i   ),
+        .target_rpm_ch0 ( target_rpm_ch0 ),
+        .target_rpm_ch1 ( target_rpm_ch1 ),
+        .target_rpm_ch2 ( target_rpm_ch2 ),
+        .target_rpm_ch3 ( target_rpm_ch3 ),
+
+        .param_valid_i  ( param_valid_i  ),
+        .param_chn_i    ( param_chn_i    ),
+        .param_a1_i     ( param_a1_i     ),
+        .param_a2_i     ( param_a2_i     ),
+        .param_a3_i     ( param_a3_i     ),
+        .param_b0_i     ( param_b0_i     ),
+        .param_b1_i     ( param_b1_i     ),
+        .param_b2_i     ( param_b2_i     ),
+        .param_max_i    ( param_max_i    ),
+        .param_min_i    ( param_min_i    ),
                         
-        .data_valid_i   ( data_valid_i  ),
-        .data_chn_i     ( data_chn_i    ),
-        .data_fdb_i     ( data_fdb_i    ),
-        .data_ref_i     ( data_ref_i    ),
-        .tready_o       ( tready_o      ),
-
-        .u_valid_o      ( u_valid_o     ),
-        .u_chn_o        ( u_chn_o       ),
-        .u_data_o       ( u_data_o      )
-                        
+        .data_valid_i   ( data_valid_i   ),
+        .data_chn_i     ( data_chn_i     ),
+        .data_fdb_i     ( data_fdb_i     ),
+        .data_ref_i     ( data_ref_i     ),
+        .tready_o       ( tready_o       )
     );
     defparam input_gen_inst.DATA_WIDTH = DATA_WIDTH;
 

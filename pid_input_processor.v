@@ -8,6 +8,9 @@
 // Code Revision History:
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T.      | 2024/04/02    | Initial version
+// v1.1.0   | R.T.      | 2024/04/05    | Remove pid output, fix target
+//                                      | rpm, and add some interface
+//                                      | for the PID output processor
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -24,6 +27,11 @@ module PID_Input_Processor(
     rpm1_data_o,
     rpm2_data_o,
     rpm3_data_o,
+
+    target_rpm_ch0,
+    target_rpm_ch1,
+    target_rpm_ch2,
+    target_rpm_ch3,
     
     param_valid_i,
     param_chn_i,
@@ -40,12 +48,8 @@ module PID_Input_Processor(
     data_chn_i,
     data_fdb_i,
     data_ref_i,
-    tready_o,
+    tready_o
     
-    u_valid_o,
-    u_chn_o,
-    u_data_o
-
 ) /* synthesis syn_preserve=1*/;
 
 //**********************************************************************
@@ -54,9 +58,12 @@ module PID_Input_Processor(
     parameter DATA_WIDTH = 16;
 
     parameter NUM_CHN = 4;
-    localparam CHN_WIDTH = (NUM_CHN>1)? $clog2(NUM_CHN):1; //bug?
+    localparam CHN_WIDTH = 3;
+    // localparam CHN_WIDTH = (NUM_CHN>1)? $clog2(NUM_CHN):1; //bug?
 
     localparam NUM_CYCLE = 20;
+
+    parameter RPM_MAX = 1500;
 
 //**********************************************************************
 // --- Input/Output Declaration
@@ -73,6 +80,11 @@ module PID_Input_Processor(
     input wire  [DATA_WIDTH-1:0]    rpm1_data_o;
     input wire  [DATA_WIDTH-1:0]    rpm2_data_o;
     input wire  [DATA_WIDTH-1:0]    rpm3_data_o;
+
+    input wire  [DATA_WIDTH-1:0]    target_rpm_ch0;
+    input wire  [DATA_WIDTH-1:0]    target_rpm_ch1;
+    input wire  [DATA_WIDTH-1:0]    target_rpm_ch2;
+    input wire  [DATA_WIDTH-1:0]    target_rpm_ch3;
 
     output reg                      param_valid_i;
     output reg  [CHN_WIDTH-1:0]     param_chn_i;
@@ -92,10 +104,6 @@ module PID_Input_Processor(
     output reg  [DATA_WIDTH-1:0]    data_fdb_i;
     output reg  [DATA_WIDTH-1:0]    data_ref_i;
 
-    input wire                      u_valid_o;
-    input wire [CHN_WIDTH-1:0]      u_chn_o;
-    input wire [DATA_WIDTH-1:0]     u_data_o;
-
 //**********************************************************************
 // --- Internal Signal Declaration
 //**********************************************************************
@@ -106,11 +114,6 @@ module PID_Input_Processor(
     reg                         data_load;
     reg     [CHN_WIDTH:0]       data_cycle;
 
-    reg     [DATA_WIDTH-1:0]    u_data_ch0;
-    reg     [DATA_WIDTH-1:0]    u_data_ch1;
-    reg     [DATA_WIDTH-1:0]    u_data_ch2;
-    reg     [DATA_WIDTH-1:0]    u_data_ch3;
-
     reg     [DATA_WIDTH-1:0]    rpm_data_ch0;
     reg     [DATA_WIDTH-1:0]    rpm_data_ch1;
     reg     [DATA_WIDTH-1:0]    rpm_data_ch2;
@@ -119,7 +122,7 @@ module PID_Input_Processor(
 //**********************************************************************
 // --- Main core
 //**********************************************************************
-// --- rpm sample & holding---
+// --- rpm sample & holding ---
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
             rpm_data_ch0 <= 0;
@@ -150,7 +153,7 @@ module PID_Input_Processor(
         end
     end
 
-// --- input parameter setting---
+// --- input parameter setting ---
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             cnt_cycle <= 0;
@@ -204,8 +207,8 @@ module PID_Input_Processor(
                 param_b0_i <= 26;
                 param_b1_i <= 13;
                 param_b2_i <= 13;
-                param_max_i <= 1500;
-                param_min_i <= -200;
+                param_max_i <= RPM_MAX;
+                param_min_i <= -RPM_MAX;
             end
             1: begin
                 param_a1_i <= 128;
@@ -214,8 +217,8 @@ module PID_Input_Processor(
                 param_b0_i <= 26;
                 param_b1_i <= 13;
                 param_b2_i <= 13;
-                param_max_i <= 1500;
-                param_min_i <= -200;
+                param_max_i <= RPM_MAX;
+                param_min_i <= -RPM_MAX;
             end
             2: begin
                 param_a1_i <= 128;
@@ -224,8 +227,8 @@ module PID_Input_Processor(
                 param_b0_i <= 26;
                 param_b1_i <= 13;
                 param_b2_i <= 13;
-                param_max_i <= 1500;
-                param_min_i <= -200;
+                param_max_i <= RPM_MAX;
+                param_min_i <= -RPM_MAX;
             end
             3: begin
                 param_a1_i <= 128;
@@ -234,8 +237,8 @@ module PID_Input_Processor(
                 param_b0_i <= 26;
                 param_b1_i <= 13;
                 param_b2_i <= 13;
-                param_max_i <=1500;
-                param_min_i <= -200;
+                param_max_i <= RPM_MAX;
+                param_min_i <= -RPM_MAX;
             end
             default: begin
                 param_a1_i <= 128;
@@ -244,13 +247,13 @@ module PID_Input_Processor(
                 param_b0_i <= 26;
                 param_b1_i <= 13;
                 param_b2_i <= 13;
-                param_max_i <= 1500;
-                param_min_i <= -200;
+                param_max_i <= RPM_MAX;
+                param_min_i <= -RPM_MAX;
             end
         endcase
     end
 
-// ---generate data input --- 
+// --- generate data input --- 
     // ---start data load after 10 clks---
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
@@ -285,50 +288,30 @@ module PID_Input_Processor(
         else if(data_cycle == 0) begin
             data_valid_i <= 1'b1;
             data_chn_i <= 0;
-            data_fdb_i <= u_data_ch0;
-            data_ref_i <= rpm_data_ch0;
+            data_fdb_i <= rpm_data_ch0;
+            data_ref_i <= target_rpm_ch0;
         end
         else if(data_cycle == 1)  begin
             data_valid_i <= 1'b1;
             data_chn_i <= 1;
-            data_fdb_i <= u_data_ch1;
-            data_ref_i <= rpm_data_ch1;
+            data_fdb_i <= rpm_data_ch1;
+            data_ref_i <= target_rpm_ch1;
         end
         else if(data_cycle == 2)  begin
             data_valid_i <= 1'b1;
             data_chn_i <= 2;
-            data_fdb_i <= u_data_ch2;
-            data_ref_i <= rpm_data_ch2;
+            data_fdb_i <= rpm_data_ch2;
+            data_ref_i <= target_rpm_ch2;
         end
         else begin
             data_valid_i <= 1'b1;
             data_chn_i <= data_cycle;
-            data_fdb_i <= u_data_ch3;
-            data_ref_i <= rpm_data_ch3;
+            data_fdb_i <= rpm_data_ch3;
+            data_ref_i <= target_rpm_ch3;
         end
     end
 
-    // ---handle the PID output data---
-    always @(posedge clk or negedge rstn) begin
-        if(!rstn) begin
-            u_data_ch0 <= 0;
-            u_data_ch1 <= 0;
-            u_data_ch2 <= 0;
-            u_data_ch3 <= 0;
-        end
-        else if(u_valid_o == 1'b1 && u_chn_o == 0) begin
-            u_data_ch0 <= u_data_o;
-        end
-        else if(u_valid_o == 1'b1 && u_chn_o == 1) begin
-            u_data_ch1 <= u_data_o;
-        end
-        else if(u_valid_o == 1'b1 && u_chn_o == 2) begin
-            u_data_ch2 <= u_data_o;
-        end
-        else if(u_valid_o == 1'b1 && u_chn_o == 3) begin
-            u_data_ch3 <= u_data_o;
-        end
-    end
+
 
 
 endmodule
