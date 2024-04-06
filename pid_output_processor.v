@@ -8,6 +8,7 @@
 // Code Revision History:
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T.      | 2024/04/05    | Initial version
+// v1.1.0   | R.T.      | 2024/04/06    | Update the pwm signal output
 //**********************************************************************
 
 module PID_output_processor(
@@ -18,11 +19,6 @@ module PID_output_processor(
     u_valid_o,
     u_chn_o,
     u_data_o,
-
-    motor_0_stop,
-    motor_1_stop,
-    motor_2_stop,
-    motor_3_stop,
 
     motor_0_in_1,
     motor_0_in_2,
@@ -42,7 +38,7 @@ module PID_output_processor(
     parameter   NUM_CHN = 4;
     localparam  CHN_WIDTH = 3;
 
-    parameter   RPM_MAX = 1500;
+    parameter  integer RPM_MAX = 1500;
 
     parameter   CLK_FREQ = 27_000_000;  // Default = 27MHz
     parameter   PWM_FREQ = 100_000;     // Default = 100kHz
@@ -69,11 +65,6 @@ module PID_output_processor(
     input wire  [CHN_WIDTH-1:0]     u_chn_o;
     input wire  [DATA_WIDTH-1:0]    u_data_o;
 
-    input wire                      motor_0_stop;
-    input wire                      motor_1_stop;
-    input wire                      motor_2_stop;
-    input wire                      motor_3_stop;
-
     output reg                      motor_0_in_1;
     output reg                      motor_0_in_2;
     output reg                      motor_1_in_1;
@@ -90,6 +81,11 @@ module PID_output_processor(
     reg     [DATA_WIDTH-1:0]        u_data_ch1;
     reg     [DATA_WIDTH-1:0]        u_data_ch2;
     reg     [DATA_WIDTH-1:0]        u_data_ch3;
+
+    reg     [DATA_WIDTH-1:0]        u_data_ch0_abs;
+    reg     [DATA_WIDTH-1:0]        u_data_ch1_abs;
+    reg     [DATA_WIDTH-1:0]        u_data_ch2_abs;
+    reg     [DATA_WIDTH-1:0]        u_data_ch3_abs;
 
     reg     [COUNTER_WIDTH-1:0]     counter_pwm;
     reg     [COUNTER_WIDTH-1:0]     pwm_thr_ch0;
@@ -122,6 +118,22 @@ module PID_output_processor(
         end
     end
 
+// --- calculate abs
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            u_data_ch0_abs <= 0;
+            u_data_ch1_abs <= 0;
+            u_data_ch2_abs <= 0;
+            u_data_ch3_abs <= 0;
+        end
+        else begin
+            u_data_ch0_abs <= (u_data_ch0[DATA_WIDTH-1] == 1'b0)? u_data_ch0 : ~u_data_ch0 + 1;
+            u_data_ch1_abs <= (u_data_ch1[DATA_WIDTH-1] == 1'b0)? u_data_ch1 : ~u_data_ch1 + 1;
+            u_data_ch2_abs <= (u_data_ch2[DATA_WIDTH-1] == 1'b0)? u_data_ch2 : ~u_data_ch2 + 1;
+            u_data_ch3_abs <= (u_data_ch3[DATA_WIDTH-1] == 1'b0)? u_data_ch3 : ~u_data_ch3 + 1;
+        end
+    end
+
 // --- convert the PID output to the PWM signal---
 // --- Description:
 //      1. PID output range: -1500 ~ 1500
@@ -129,7 +141,7 @@ module PID_output_processor(
 //      3. PWM frequency: 1kHz
 
     // ---counter_pwm
-    always @(posedge clk_pwm or negedge rstn) begin
+    always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             counter_pwm <= 0;
         end
@@ -139,6 +151,10 @@ module PID_output_processor(
         else begin
             counter_pwm <= counter_pwm + 1;
         end
+    end
+
+    always @(posedge clk_pwm) begin
+        counter_pwm <= 0;
     end
 
     // ---calculation for pwm_thr_chX
@@ -152,29 +168,63 @@ module PID_output_processor(
             pwm_thr_ch3 <= 0;
         end
         else begin
-            if (u_data_ch0 > 0)
-                pwm_thr_ch0 <= PWM_DUTY_MIN + (u_data_ch0 * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            else
-                pwm_thr_ch0 <= PWM_DUTY_MIN + ((-u_data_ch0) * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            
-            if (u_data_ch1 > 0)
-                pwm_thr_ch1 <= PWM_DUTY_MIN + (u_data_ch1 * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            else
-                pwm_thr_ch1 <= PWM_DUTY_MIN + ((-u_data_ch1) * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            
-            if (u_data_ch2 > 0)
-                pwm_thr_ch2 <= PWM_DUTY_MIN + (u_data_ch2 * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            else
-                pwm_thr_ch2 <= PWM_DUTY_MIN + ((-u_data_ch2) * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            
-            if (u_data_ch3 > 0)
-                pwm_thr_ch3 <= PWM_DUTY_MIN + (u_data_ch3 * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
-            else
-                pwm_thr_ch3 <= PWM_DUTY_MIN + ((-u_data_ch3) * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX);
+            pwm_thr_ch0 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch0_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            pwm_thr_ch1 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch1_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            pwm_thr_ch2 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch2_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            pwm_thr_ch3 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch3_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
         end
     end
     
+    // ---output the pwm signal
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            motor_0_in_1 <= 0;
+            motor_0_in_2 <= 0;
+            motor_1_in_1 <= 0;
+            motor_1_in_2 <= 0;
+            motor_2_in_1 <= 0;
+            motor_2_in_2 <= 0;
+            motor_3_in_1 <= 0;
+            motor_3_in_2 <= 0;
+        end
+        else begin
+            if (u_data_ch0[DATA_WIDTH-1] == 1'b0) begin
+                motor_0_in_1 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // forward pwm
+                motor_0_in_2 <= 0;                                  // fast decay
+            end
+            else begin
+                motor_0_in_1 <= 0;                                  // fast decay
+                motor_0_in_2 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // reverse pwm
+            end
 
+            if (u_data_ch1[DATA_WIDTH-1] == 1'b0) begin
+                motor_1_in_1 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // forward pwm
+                motor_1_in_2 <= 0;                                  // fast decay
+            end
+            else begin
+                motor_1_in_1 <= 0;                                  // fast decay
+                motor_1_in_2 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // reverse pwm
+            end
+
+            if (u_data_ch2[DATA_WIDTH-1] == 1'b0) begin
+                motor_2_in_1 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // forward pwm
+                motor_2_in_2 <= 0;                                  // fast decay
+            end
+            else begin
+                motor_2_in_1 <= 0;                                  // fast decay
+                motor_2_in_2 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // reverse pwm
+            end
+
+            if (u_data_ch3[DATA_WIDTH-1] == 1'b0) begin
+                motor_3_in_1 <= (counter_pwm < pwm_thr_ch3)? 1 : 0; // forward pwm
+                motor_3_in_2 <= 0;                                  // fast decay
+            end
+            else begin
+                motor_3_in_1 <= 0;                                  // fast decay
+                motor_3_in_2 <= (counter_pwm < pwm_thr_ch3)? 1 : 0; // reverse pwm
+            end
+        end
+    end
 
 
 
