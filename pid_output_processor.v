@@ -9,13 +9,13 @@
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T.      | 2024/04/05    | Initial version
 // v1.1.0   | R.T.      | 2024/04/06    | Update the pwm signal output
+// v1.1.1   | R.T.      | 2024/04/22    | Removed pwm_clk
 //**********************************************************************
 
 module PID_output_processor(
     clk,
     rstn,
-    clk_pwm,
-    
+
     u_valid_o,
     u_chn_o,
     u_data_o,
@@ -59,7 +59,6 @@ module PID_output_processor(
 //**********************************************************************
     input wire                      clk;
     input wire                      rstn;
-    input wire                      clk_pwm;
 
     input wire                      u_valid_o;
     input wire  [CHN_WIDTH-1:0]     u_chn_o;
@@ -153,14 +152,10 @@ module PID_output_processor(
         end
     end
 
-    always @(posedge clk_pwm) begin
-        counter_pwm <= 0;
-    end
-
     // ---calculation for pwm_thr_chX
     //  using linear mapping:
     //      pwm_thr_chX = PWM_DUTY_MIN + (|u_data_chX| * (PWM_DUTY_MAX - PWM_DUTY_MIN) / RPM_MAX)
-    always @(posedge clk_pwm or negedge rstn) begin
+    always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             pwm_thr_ch0 <= 0;
             pwm_thr_ch1 <= 0;
