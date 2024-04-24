@@ -31,12 +31,12 @@ module PID_output_processor_tb;
 
     //Instantiate unit under test
     PID_output_processor uut(
-        .clk(clk), .rstn(rstn), .clk_pwm(clk_pwm), .u_valid_o(u_valid_o), .u_chn_o(u_chn_o), .u_data_o(u_data_o),
+        .clk(clk), .rstn(rstn), .u_valid_o(u_valid_o), .u_chn_o(u_chn_o), .u_data_o(u_data_o),
         .motor_0_in_1(motor_0_in_1), .motor_0_in_2(motor_0_in_2), .motor_1_in_1(motor_1_in_1), 
         .motor_1_in_2(motor_1_in_2), .motor_2_in_1(motor_2_in_1), .motor_2_in_2(motor_2_in_2),
         .motor_3_in_1(motor_3_in_1), .motor_3_in_2(motor_3_in_2));
 
-        //Initial conditions
+    //Initial conditions
     initial begin
 
         //Initialize simulation
