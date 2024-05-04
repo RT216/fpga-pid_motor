@@ -10,6 +10,8 @@
 // v1.0.0   | R.T       | 2024/04/03    | Initial version
 // v1.1.0   | R.T       | 2024/04/05    | Update interface for 
 //                                      | PID_i/p_proc, RPM_reader
+// v1.2.0   | R.T       | 2024/05/04    | Update interface for
+//                                      | PID_o/p_proc, UART_controller
 //**********************************************************************
 
 module top (
@@ -23,11 +25,18 @@ module top (
     enc2_a,
     enc2_b,
     enc3_a,
-    enc3_b,   
+    enc3_b, 
 
-    u_valid_o,
-    u_chn_o,
-    u_data_o
+    uart_rx,
+
+    motor_0_in_1,
+    motor_0_in_2,
+    motor_1_in_1,
+    motor_1_in_2,
+    motor_2_in_1,
+    motor_2_in_2,
+    motor_3_in_1,
+    motor_3_in_2
 );
 
 
@@ -46,6 +55,8 @@ module top (
     input wire                      clk;
     input wire                      rstn;
 
+    input wire                      uart_rx;
+
     input wire                      enc0_a;
     input wire                      enc0_b;
     input wire                      enc1_a;
@@ -56,9 +67,14 @@ module top (
     input wire                      enc3_b;
 
 // --- output ---
-    output wire                     u_valid_o;
-    output wire [CHN_WIDTH-1:0]     u_chn_o;
-    output wire [DATA_WIDTH-1:0]    u_data_o;
+    output wire                     motor_0_in_1;
+    output wire                     motor_0_in_2;
+    output wire                     motor_1_in_1;
+    output wire                     motor_1_in_2;
+    output wire                     motor_2_in_1;
+    output wire                     motor_2_in_2;
+    output wire                     motor_3_in_1;
+    output wire                     motor_3_in_2;
 
 //**********************************************************************
 // --- Internal Signal Declaration
@@ -92,6 +108,14 @@ module top (
     wire    [CHN_WIDTH-1:0]     data_chn_i/*synthesis syn_keep=1*/;
     wire    [DATA_WIDTH-1:0]    data_fdb_i/*synthesis syn_keep=1*/;
     wire    [DATA_WIDTH-1:0]    data_ref_i/*synthesis syn_keep=1*/;
+
+    wire                        u_valid_o;
+    wire    [CHN_WIDTH-1:0]     u_chn_o;
+    wire    [DATA_WIDTH-1:0]    u_data_o;
+
+    wire                        tr_valid_o;
+    wire    [CHN_WIDTH-1:0]     tr_chn_o;
+    wire    [DATA_WIDTH-1:0]    tr_data_o;
 
 
 //**********************************************************************
@@ -200,10 +224,9 @@ module top (
         .rpm2_data_o    ( rpm2_data_o    ),
         .rpm3_data_o    ( rpm3_data_o    ),
 
-        .target_rpm_ch0 ( target_rpm_ch0 ),
-        .target_rpm_ch1 ( target_rpm_ch1 ),
-        .target_rpm_ch2 ( target_rpm_ch2 ),
-        .target_rpm_ch3 ( target_rpm_ch3 ),
+        .tr_valid_o     ( tr_valid_o     ),
+        .tr_chn_o       ( tr_chn_o       ),
+        .tr_data_o      ( tr_data_o      ),
 
         .param_valid_i  ( param_valid_i  ),
         .param_chn_i    ( param_chn_i    ),
@@ -223,5 +246,45 @@ module top (
         .tready_o       ( tready_o       )
     );
     defparam input_gen_inst.DATA_WIDTH = DATA_WIDTH;
+
+//**********************************************************************
+// --- Module: PID_output_processor
+// --- Description:
+//          convert the pid output to the pwm signal
+//**********************************************************************
+    PID_Output_Processor PID_Output_Processor_inst(
+        .clk            ( clk           ),
+        .rstn           ( rstn          ),
+
+        .u_valid_o      ( u_valid_o     ),
+        .u_chn_o        ( u_chn_o       ),
+        .u_data_o       ( u_data_o      ),
+
+        .motor_0_in_1   ( motor_0_in_1  ),
+        .motor_0_in_2   ( motor_0_in_2  ),
+        .motor_1_in_1   ( motor_1_in_1  ),
+        .motor_1_in_2   ( motor_1_in_2  ),
+        .motor_2_in_1   ( motor_2_in_1  ),
+        .motor_2_in_2   ( motor_2_in_2  ),
+        .motor_3_in_1   ( motor_3_in_1  ),
+        .motor_3_in_2   ( motor_3_in_2  )
+    );
+
+//**********************************************************************
+// --- Module: UART_controller
+// --- Description:
+//          1. receive data from uart_rx
+//          2. send data to PID_input_processor
+//**********************************************************************
+    UART_controller UART_controller_inst(
+        .clk            ( clk           ),
+        .rstn           ( rstn          ),
+        .uart_rx        ( uart_rx       ),
+
+        .tr_valid_o     ( tr_valid_o    ),
+        .tr_chn_o       ( tr_chn_o      ),
+        .tr_data_o      ( tr_data_o     )
+    );
+
 
 endmodule
