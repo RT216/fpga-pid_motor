@@ -2,7 +2,7 @@
 //  Project: TDPS
 //  File: top.v
 //  Description: top module
-//  Author: 
+//  Author: Ruiqi Tang
 //  Timestamp: 
 //----------------------------------------------------------------------
 // Code Revision History:
@@ -12,6 +12,7 @@
 //                                      | PID_i/p_proc, RPM_reader
 // v1.2.0   | R.T       | 2024/05/04    | Update interface for
 //                                      | PID_o/p_proc, UART_controller
+// v1.2.1   | R.T       | 2024/05/05    | Fixed Typo, added clk_gen
 //**********************************************************************
 
 module top (
@@ -47,7 +48,7 @@ module top (
     parameter PARAM_FRACTION_WIDTH = 8;
 
     parameter NUM_CHN = 4;
-    localparam CHN_WIDTH = (NUM_CHN>1)? $clog2(NUM_CHN):1;
+    localparam CHN_WIDTH = 3;
 //**********************************************************************
 // --- Input/Output Declaration
 //**********************************************************************
@@ -117,14 +118,27 @@ module top (
     wire    [CHN_WIDTH-1:0]     tr_chn_o;
     wire    [DATA_WIDTH-1:0]    tr_data_o;
 
+//**********************************************************************
+// --- Main core
+//**********************************************************************
 
 //**********************************************************************
-// --- Module: RPM_Reader
+// --- Module: sample_clk_gen
+// --- Description:
+//      1. Generate the sample clock (10MHz) for the RPM reader
+//**********************************************************************
+    Gowin_rPLL sample_clk_gen_inst (
+        .clkin          ( clk           ),
+        .clkout         ( sample_clk    )
+    );
+
+//**********************************************************************
+// --- Module: RPM_reader
 // --- Description:
 //      1. Quadruple the encoder's pulse
 //      2. Calculate the RPM
 //**********************************************************************
-    RPM_Reader RPM_Reader_inst0(
+    RPM_reader RPM_reader_inst0(
         .clk            ( clk           ),
         .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
@@ -136,7 +150,7 @@ module top (
         .rpm_data_o     ( rpm0_data_o   )
     );
 
-    RPM_Reader RPM_Reader_inst1(
+    RPM_reader RPM_reader_inst1(
         .clk            ( clk           ),
         .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
@@ -148,7 +162,7 @@ module top (
         .rpm_data_o     ( rpm1_data_o   )
     );
 
-    RPM_Reader RPM_Reader_inst2(
+    RPM_reader RPM_reader_inst2(
         .clk            ( clk           ),
         .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
@@ -160,7 +174,7 @@ module top (
         .rpm_data_o     ( rpm2_data_o   )
     );
 
-    RPM_Reader RPM_Reader_inst3(
+    RPM_reader RPM_reader_inst3(
         .clk            ( clk           ),
         .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
@@ -245,14 +259,13 @@ module top (
         .data_ref_i     ( data_ref_i     ),
         .tready_o       ( tready_o       )
     );
-    defparam input_gen_inst.DATA_WIDTH = DATA_WIDTH;
 
 //**********************************************************************
 // --- Module: PID_output_processor
 // --- Description:
 //          convert the pid output to the pwm signal
 //**********************************************************************
-    PID_Output_Processor PID_Output_Processor_inst(
+    PID_output_processor PID_output_processor_inst(
         .clk            ( clk           ),
         .rstn           ( rstn          ),
 

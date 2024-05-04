@@ -9,6 +9,7 @@
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T.      | 2024/04/08    | Initial version
 // v1.0.1   | R.T       | 2024/05/04    | Tested set_rpm func.
+// v1.0.2   | R.T       | 2024/05/05    | Fixed Typo
 //**********************************************************************
 
 module UART_controller (
@@ -178,7 +179,7 @@ module UART_controller (
                     next_state = current_state;
                     next_rx_chn = current_rx_chn;
                     next_rx_number = current_rx_number;
-                    next_rx_valid = current_rx_number;
+                    next_rx_valid = current_rx_valid;
                 end
             end
 
