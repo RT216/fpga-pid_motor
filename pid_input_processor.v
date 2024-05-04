@@ -11,6 +11,7 @@
 // v1.1.0   | R.T.      | 2024/04/05    | Remove pid output, fix target
 //                                      | rpm, and add some interface
 //                                      | for the PID output processor
+// v1.2.0   | R.T.      | 2024/04/08    | Add target rpm input
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -28,10 +29,9 @@ module PID_Input_Processor(
     rpm2_data_o,
     rpm3_data_o,
 
-    target_rpm_ch0,
-    target_rpm_ch1,
-    target_rpm_ch2,
-    target_rpm_ch3,
+    tr_valid_o,
+    tr_chn_o,
+    tr_data_o,
     
     param_valid_i,
     param_chn_i,
@@ -81,10 +81,9 @@ module PID_Input_Processor(
     input wire  [DATA_WIDTH-1:0]    rpm2_data_o;
     input wire  [DATA_WIDTH-1:0]    rpm3_data_o;
 
-    input wire  [DATA_WIDTH-1:0]    target_rpm_ch0;
-    input wire  [DATA_WIDTH-1:0]    target_rpm_ch1;
-    input wire  [DATA_WIDTH-1:0]    target_rpm_ch2;
-    input wire  [DATA_WIDTH-1:0]    target_rpm_ch3;
+    input wire                      tr_valid_o;
+    input wire  [CHN_WIDTH-1:0]     tr_chn_o;
+    input wire  [DATA_WIDTH-1:0]    tr_data_o;
 
     output reg                      param_valid_i;
     output reg  [CHN_WIDTH-1:0]     param_chn_i;
@@ -119,6 +118,11 @@ module PID_Input_Processor(
     reg     [DATA_WIDTH-1:0]    rpm_data_ch2;
     reg     [DATA_WIDTH-1:0]    rpm_data_ch3;
 
+    reg     [DATA_WIDTH-1:0]    target_rpm_ch1;
+    reg     [DATA_WIDTH-1:0]    target_rpm_ch2;
+    reg     [DATA_WIDTH-1:0]    target_rpm_ch3;
+    reg     [DATA_WIDTH-1:0]    target_rpm_ch0;
+
 //**********************************************************************
 // --- Main core
 //**********************************************************************
@@ -152,6 +156,29 @@ module PID_Input_Processor(
                 rpm_data_ch3 <= rpm_data_ch3;
         end
     end
+
+// --- handle the target rpm data ---
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            target_rpm_ch0 <= 0;
+            target_rpm_ch1 <= 0;
+            target_rpm_ch2 <= 0;
+            target_rpm_ch3 <= 0;
+        end
+        else if(tr_valid_o == 1'b1 && tr_chn_o == 0) begin
+            target_rpm_ch0 <= tr_data_o;
+        end
+        else if(tr_valid_o == 1'b1 && tr_chn_o == 1) begin
+            target_rpm_ch1 <= tr_data_o;
+        end
+        else if(tr_valid_o == 1'b1 && tr_chn_o == 2) begin
+            target_rpm_ch2 <= tr_data_o;
+        end
+        else if(tr_valid_o == 1'b1 && tr_chn_o == 3) begin
+            target_rpm_ch3 <= tr_data_o;
+        end
+    end
+
 
 // --- input parameter setting ---
     always @(posedge clk or negedge rstn) begin
