@@ -192,31 +192,31 @@ module top (
 //      3-pole/3-zero formula: 
 //          U(n) = b0*E(n) + b1*E(n-1) + b2*E(n-2) + a1*U(n-1)+a2*U(n-2) + a3*U(n-3).
 //**********************************************************************
-    PID_Controller_3p3z_Top controller_3p3z_inst(
-        .clk            ( clk           ),
-        .rstn           ( rstn          ),
+    // PID_Controller_3p3z_Top controller_3p3z_inst(
+    //     .clk            ( clk           ),
+    //     .rstn           ( rstn          ),
 
-        .param_valid_i  ( param_valid_i ),
-        .param_chn_i    ( param_chn_i   ),
-        .param_a1_i     ( param_a1_i    ),
-        .param_a2_i     ( param_a2_i    ),
-        .param_a3_i     ( param_a3_i    ),
-        .param_b0_i     ( param_b0_i    ),
-        .param_b1_i     ( param_b1_i    ),
-        .param_b2_i     ( param_b2_i    ),
-        .param_max_i    ( param_max_i   ),
-        .param_min_i    ( param_min_i   ),
+    //     .param_valid_i  ( param_valid_i ),
+    //     .param_chn_i    ( param_chn_i   ),
+    //     .param_a1_i     ( param_a1_i    ),
+    //     .param_a2_i     ( param_a2_i    ),
+    //     .param_a3_i     ( param_a3_i    ),
+    //     .param_b0_i     ( param_b0_i    ),
+    //     .param_b1_i     ( param_b1_i    ),
+    //     .param_b2_i     ( param_b2_i    ),
+    //     .param_max_i    ( param_max_i   ),
+    //     .param_min_i    ( param_min_i   ),
                         
-        .data_valid_i   ( data_valid_i  ),
-        .data_chn_i     ( data_chn_i    ),
-        .data_fdb_i     ( data_fdb_i    ),
-        .data_ref_i     ( data_ref_i    ),
-        .tready_o       ( tready_o      ),
+    //     .data_valid_i   ( data_valid_i  ),
+    //     .data_chn_i     ( data_chn_i    ),
+    //     .data_fdb_i     ( data_fdb_i    ),
+    //     .data_ref_i     ( data_ref_i    ),
+    //     .tready_o       ( tready_o      ),
                         
-        .u_valid_o      ( u_valid_o     ),
-        .u_chn_o        ( u_chn_o       ),
-        .u_data_o       ( u_data_o      )
-    );
+    //     .u_valid_o      ( u_valid_o     ),
+    //     .u_chn_o        ( u_chn_o       ),
+    //     .u_data_o       ( u_data_o      )
+    // );
 
 //**********************************************************************
 // --- Module: PID_input_processor
@@ -269,9 +269,9 @@ module top (
         .clk            ( clk           ),
         .rstn           ( rstn          ),
 
-        .u_valid_o      ( u_valid_o     ),
-        .u_chn_o        ( u_chn_o       ),
-        .u_data_o       ( u_data_o      ),
+        .u_valid_o      ( tr_valid_o     ),
+        .u_chn_o        ( tr_chn_o       ),
+        .u_data_o       ( tr_data_o      ),
 
         .motor_0_in_1   ( motor_0_in_1  ),
         .motor_0_in_2   ( motor_0_in_2  ),
