@@ -15,9 +15,9 @@ using namespace std;
 
 int rpm2command(int rpm, int chn) {
     if(rpm > 0)
-        return rpm + chn * 4096;
+        return rpm + chn * 8192;
     else
-        return 8192 + rpm + chn * 4096;
+        return 8192 + rpm + chn * 8192;
 }
 int int2bin(int n) {
     int retval = 0;
