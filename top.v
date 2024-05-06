@@ -224,41 +224,41 @@ module top (
 //          1. parameter input 
 //          2. input data from RPM reader
 //**********************************************************************
-    PID_Input_Processor   PID_Input_Processor_inst(
-        .clk            ( clk           ),
-        .rstn           ( rstn           ),
+    // PID_Input_Processor   PID_Input_Processor_inst(
+    //     .clk            ( clk           ),
+    //     .rstn           ( rstn           ),
 
-        .rpm0_ready     ( rpm0_ready     ),
-        .rpm1_ready     ( rpm1_ready     ),
-        .rpm2_ready     ( rpm2_ready     ),
-        .rpm3_ready     ( rpm3_ready     ),
+    //     .rpm0_ready     ( rpm0_ready     ),
+    //     .rpm1_ready     ( rpm1_ready     ),
+    //     .rpm2_ready     ( rpm2_ready     ),
+    //     .rpm3_ready     ( rpm3_ready     ),
 
-        .rpm0_data_o    ( rpm0_data_o    ),
-        .rpm1_data_o    ( rpm1_data_o    ),
-        .rpm2_data_o    ( rpm2_data_o    ),
-        .rpm3_data_o    ( rpm3_data_o    ),
+    //     .rpm0_data_o    ( rpm0_data_o    ),
+    //     .rpm1_data_o    ( rpm1_data_o    ),
+    //     .rpm2_data_o    ( rpm2_data_o    ),
+    //     .rpm3_data_o    ( rpm3_data_o    ),
 
-        .tr_valid_o     ( tr_valid_o     ),
-        .tr_chn_o       ( tr_chn_o       ),
-        .tr_data_o      ( tr_data_o      ),
+    //     .tr_valid_o     ( tr_valid_o     ),
+    //     .tr_chn_o       ( tr_chn_o       ),
+    //     .tr_data_o      ( tr_data_o      ),
 
-        .param_valid_i  ( param_valid_i  ),
-        .param_chn_i    ( param_chn_i    ),
-        .param_a1_i     ( param_a1_i     ),
-        .param_a2_i     ( param_a2_i     ),
-        .param_a3_i     ( param_a3_i     ),
-        .param_b0_i     ( param_b0_i     ),
-        .param_b1_i     ( param_b1_i     ),
-        .param_b2_i     ( param_b2_i     ),
-        .param_max_i    ( param_max_i    ),
-        .param_min_i    ( param_min_i    ),
+    //     .param_valid_i  ( param_valid_i  ),
+    //     .param_chn_i    ( param_chn_i    ),
+    //     .param_a1_i     ( param_a1_i     ),
+    //     .param_a2_i     ( param_a2_i     ),
+    //     .param_a3_i     ( param_a3_i     ),
+    //     .param_b0_i     ( param_b0_i     ),
+    //     .param_b1_i     ( param_b1_i     ),
+    //     .param_b2_i     ( param_b2_i     ),
+    //     .param_max_i    ( param_max_i    ),
+    //     .param_min_i    ( param_min_i    ),
                         
-        .data_valid_i   ( data_valid_i   ),
-        .data_chn_i     ( data_chn_i     ),
-        .data_fdb_i     ( data_fdb_i     ),
-        .data_ref_i     ( data_ref_i     ),
-        .tready_o       ( tready_o       )
-    );
+    //     .data_valid_i   ( data_valid_i   ),
+    //     .data_chn_i     ( data_chn_i     ),
+    //     .data_fdb_i     ( data_fdb_i     ),
+    //     .data_ref_i     ( data_ref_i     ),
+    //     .tready_o       ( tready_o       )
+    // );
 
 //**********************************************************************
 // --- Module: PID_output_processor
