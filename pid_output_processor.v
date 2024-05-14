@@ -10,6 +10,7 @@
 // v1.0.0   | R.T.      | 2024/04/05    | Initial version
 // v1.1.0   | R.T.      | 2024/04/06    | Update the pwm signal output
 // v1.1.1   | R.T.      | 2024/04/22    | Removed pwm_clk
+// v1.2.0   | R.T.      | 2024/05/06    | Added stop signal
 //**********************************************************************
 
 module PID_output_processor(
@@ -19,6 +20,8 @@ module PID_output_processor(
     u_valid_o,
     u_chn_o,
     u_data_o,
+
+    stop,
 
     motor_0_in_1,
     motor_0_in_2,
@@ -63,6 +66,8 @@ module PID_output_processor(
     input wire                      u_valid_o;
     input wire  [CHN_WIDTH-1:0]     u_chn_o;
     input wire  [DATA_WIDTH-1:0]    u_data_o;
+
+    input wire  [3:0]               stop;
 
     output reg                      motor_0_in_1;
     output reg                      motor_0_in_2;
@@ -163,10 +168,25 @@ module PID_output_processor(
             pwm_thr_ch3 <= 0;
         end
         else begin
-            pwm_thr_ch0 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch0_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
-            pwm_thr_ch1 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch1_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
-            pwm_thr_ch2 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch2_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
-            pwm_thr_ch3 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch3_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            if (stop[0])
+                pwm_thr_ch0 <= 0;
+            else
+                pwm_thr_ch0 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch0_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            
+            if (stop[1])
+                pwm_thr_ch1 <= 0;
+            else
+                pwm_thr_ch1 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch1_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+
+            if (stop[2])
+                pwm_thr_ch2 <= 0;
+            else
+                pwm_thr_ch2 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch2_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
+            
+            if (stop[3])
+                pwm_thr_ch3 <= 0;
+            else
+                pwm_thr_ch3 <= PWM_DUTY_MIN + ({{16'b0},u_data_ch3_abs} * (PWM_DUTY_MAX - PWM_DUTY_MIN)) / RPM_MAX;
         end
     end
     

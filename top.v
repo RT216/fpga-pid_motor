@@ -13,6 +13,7 @@
 // v1.2.0   | R.T       | 2024/05/04    | Update interface for
 //                                      | PID_o/p_proc, UART_controller
 // v1.2.1   | R.T       | 2024/05/05    | Fixed Typo, added clk_gen
+// v1.3.0   | R.T.      | 2024/05/06    | Added stop signal
 //**********************************************************************
 
 module top (
@@ -118,6 +119,8 @@ module top (
     wire    [CHN_WIDTH-1:0]     tr_chn_o;
     wire    [DATA_WIDTH-1:0]    tr_data_o;
 
+    wire    [3:0]               stop;
+
 //**********************************************************************
 // --- Main core
 //**********************************************************************
@@ -192,31 +195,31 @@ module top (
 //      3-pole/3-zero formula: 
 //          U(n) = b0*E(n) + b1*E(n-1) + b2*E(n-2) + a1*U(n-1)+a2*U(n-2) + a3*U(n-3).
 //**********************************************************************
-    PID_Controller_3p3z_Top controller_3p3z_inst(
-        .clk            ( clk           ),
-        .rstn           ( rstn          ),
+    // PID_Controller_3p3z_Top controller_3p3z_inst(
+    //     .clk            ( clk           ),
+    //     .rstn           ( rstn          ),
 
-        .param_valid_i  ( param_valid_i ),
-        .param_chn_i    ( param_chn_i   ),
-        .param_a1_i     ( param_a1_i    ),
-        .param_a2_i     ( param_a2_i    ),
-        .param_a3_i     ( param_a3_i    ),
-        .param_b0_i     ( param_b0_i    ),
-        .param_b1_i     ( param_b1_i    ),
-        .param_b2_i     ( param_b2_i    ),
-        .param_max_i    ( param_max_i   ),
-        .param_min_i    ( param_min_i   ),
+    //     .param_valid_i  ( param_valid_i ),
+    //     .param_chn_i    ( param_chn_i   ),
+    //     .param_a1_i     ( param_a1_i    ),
+    //     .param_a2_i     ( param_a2_i    ),
+    //     .param_a3_i     ( param_a3_i    ),
+    //     .param_b0_i     ( param_b0_i    ),
+    //     .param_b1_i     ( param_b1_i    ),
+    //     .param_b2_i     ( param_b2_i    ),
+    //     .param_max_i    ( param_max_i   ),
+    //     .param_min_i    ( param_min_i   ),
                         
-        .data_valid_i   ( data_valid_i  ),
-        .data_chn_i     ( data_chn_i    ),
-        .data_fdb_i     ( data_fdb_i    ),
-        .data_ref_i     ( data_ref_i    ),
-        .tready_o       ( tready_o      ),
+    //     .data_valid_i   ( data_valid_i  ),
+    //     .data_chn_i     ( data_chn_i    ),
+    //     .data_fdb_i     ( data_fdb_i    ),
+    //     .data_ref_i     ( data_ref_i    ),
+    //     .tready_o       ( tready_o      ),
                         
-        .u_valid_o      ( u_valid_o     ),
-        .u_chn_o        ( u_chn_o       ),
-        .u_data_o       ( u_data_o      )
-    );
+    //     .u_valid_o      ( u_valid_o     ),
+    //     .u_chn_o        ( u_chn_o       ),
+    //     .u_data_o       ( u_data_o      )
+    // );
 
 //**********************************************************************
 // --- Module: PID_input_processor
@@ -224,41 +227,41 @@ module top (
 //          1. parameter input 
 //          2. input data from RPM reader
 //**********************************************************************
-    PID_Input_Processor   PID_Input_Processor_inst(
-        .clk            ( clk           ),
-        .rstn           ( rstn           ),
+    // PID_Input_Processor   PID_Input_Processor_inst(
+    //     .clk            ( clk           ),
+    //     .rstn           ( rstn           ),
 
-        .rpm0_ready     ( rpm0_ready     ),
-        .rpm1_ready     ( rpm1_ready     ),
-        .rpm2_ready     ( rpm2_ready     ),
-        .rpm3_ready     ( rpm3_ready     ),
+    //     .rpm0_ready     ( rpm0_ready     ),
+    //     .rpm1_ready     ( rpm1_ready     ),
+    //     .rpm2_ready     ( rpm2_ready     ),
+    //     .rpm3_ready     ( rpm3_ready     ),
 
-        .rpm0_data_o    ( rpm0_data_o    ),
-        .rpm1_data_o    ( rpm1_data_o    ),
-        .rpm2_data_o    ( rpm2_data_o    ),
-        .rpm3_data_o    ( rpm3_data_o    ),
+    //     .rpm0_data_o    ( rpm0_data_o    ),
+    //     .rpm1_data_o    ( rpm1_data_o    ),
+    //     .rpm2_data_o    ( rpm2_data_o    ),
+    //     .rpm3_data_o    ( rpm3_data_o    ),
 
-        .tr_valid_o     ( tr_valid_o     ),
-        .tr_chn_o       ( tr_chn_o       ),
-        .tr_data_o      ( tr_data_o      ),
+    //     .tr_valid_o     ( tr_valid_o     ),
+    //     .tr_chn_o       ( tr_chn_o       ),
+    //     .tr_data_o      ( tr_data_o      ),
 
-        .param_valid_i  ( param_valid_i  ),
-        .param_chn_i    ( param_chn_i    ),
-        .param_a1_i     ( param_a1_i     ),
-        .param_a2_i     ( param_a2_i     ),
-        .param_a3_i     ( param_a3_i     ),
-        .param_b0_i     ( param_b0_i     ),
-        .param_b1_i     ( param_b1_i     ),
-        .param_b2_i     ( param_b2_i     ),
-        .param_max_i    ( param_max_i    ),
-        .param_min_i    ( param_min_i    ),
+    //     .param_valid_i  ( param_valid_i  ),
+    //     .param_chn_i    ( param_chn_i    ),
+    //     .param_a1_i     ( param_a1_i     ),
+    //     .param_a2_i     ( param_a2_i     ),
+    //     .param_a3_i     ( param_a3_i     ),
+    //     .param_b0_i     ( param_b0_i     ),
+    //     .param_b1_i     ( param_b1_i     ),
+    //     .param_b2_i     ( param_b2_i     ),
+    //     .param_max_i    ( param_max_i    ),
+    //     .param_min_i    ( param_min_i    ),
                         
-        .data_valid_i   ( data_valid_i   ),
-        .data_chn_i     ( data_chn_i     ),
-        .data_fdb_i     ( data_fdb_i     ),
-        .data_ref_i     ( data_ref_i     ),
-        .tready_o       ( tready_o       )
-    );
+    //     .data_valid_i   ( data_valid_i   ),
+    //     .data_chn_i     ( data_chn_i     ),
+    //     .data_fdb_i     ( data_fdb_i     ),
+    //     .data_ref_i     ( data_ref_i     ),
+    //     .tready_o       ( tready_o       )
+    // );
 
 //**********************************************************************
 // --- Module: PID_output_processor
@@ -269,9 +272,11 @@ module top (
         .clk            ( clk           ),
         .rstn           ( rstn          ),
 
-        .u_valid_o      ( u_valid_o     ),
-        .u_chn_o        ( u_chn_o       ),
-        .u_data_o       ( u_data_o      ),
+        .u_valid_o      ( tr_valid_o     ),
+        .u_chn_o        ( tr_chn_o       ),
+        .u_data_o       ( tr_data_o      ),
+
+        .stop           ( stop          ),
 
         .motor_0_in_1   ( motor_0_in_1  ),
         .motor_0_in_2   ( motor_0_in_2  ),
@@ -296,7 +301,9 @@ module top (
 
         .tr_valid_o     ( tr_valid_o    ),
         .tr_chn_o       ( tr_chn_o      ),
-        .tr_data_o      ( tr_data_o     )
+        .tr_data_o      ( tr_data_o     ),
+
+        .stop           ( stop          )
     );
 
 

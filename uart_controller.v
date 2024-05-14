@@ -10,6 +10,7 @@
 // v1.0.0   | R.T.      | 2024/04/08    | Initial version
 // v1.0.1   | R.T       | 2024/05/04    | Tested set_rpm func.
 // v1.0.2   | R.T       | 2024/05/05    | Fixed Typo
+// v1.1.0   | R.T.      | 2024/05/06    | Added stop signal
 //**********************************************************************
 
 module UART_controller (
@@ -20,7 +21,9 @@ module UART_controller (
 
     tr_valid_o,
     tr_chn_o,
-    tr_data_o
+    tr_data_o,
+
+    stop
 );
 
 //**********************************************************************
@@ -42,6 +45,8 @@ module UART_controller (
     output reg                      tr_valid_o;
     output reg  [CHN_WIDTH-1:0]     tr_chn_o;
     output reg  [DATA_WIDTH-1:0]    tr_data_o;
+
+    output reg   [3:0]              stop;
 
 //**********************************************************************
 // --- Internal Signal Declaration
@@ -198,17 +203,37 @@ module UART_controller (
             tr_chn_o            <= 0;
             tr_data_o           <= 0;
             tr_valid_o          <= 0;
+            stop                <= 0;
         end
         else begin
             if (current_rx_valid) begin
                 tr_chn_o        <= current_rx_chn;
                 tr_data_o       <= current_rx_number;
                 tr_valid_o      <= 1;
+                if(current_rx_number < 16) begin
+                    case (current_rx_chn)
+                        0: stop[0] <= 1;
+                        1: stop[1] <= 1;
+                        2: stop[2] <= 1;
+                        3: stop[3] <= 1;
+                        default: stop <= stop;
+                    endcase
+                end
+                else begin
+                    case (current_rx_chn)
+                        0: stop[0] <= 0;
+                        1: stop[1] <= 0;
+                        2: stop[2] <= 0;
+                        3: stop[3] <= 0;
+                        default: stop <= stop;
+                    endcase
+                end
             end
             else begin
                 tr_chn_o        <= 0;
                 tr_data_o       <= 0;
                 tr_valid_o      <= 0;
+                stop            <= stop;
             end
         end
     end
