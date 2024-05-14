@@ -13,6 +13,7 @@
 // v1.2.0   | R.T       | 2024/05/04    | Update interface for
 //                                      | PID_o/p_proc, UART_controller
 // v1.2.1   | R.T       | 2024/05/05    | Fixed Typo, added clk_gen
+// v1.3.0   | R.T.      | 2024/05/06    | Added stop signal
 //**********************************************************************
 
 module top (
@@ -117,6 +118,8 @@ module top (
     wire                        tr_valid_o;
     wire    [CHN_WIDTH-1:0]     tr_chn_o;
     wire    [DATA_WIDTH-1:0]    tr_data_o;
+
+    wire    [3:0]               stop;
 
 //**********************************************************************
 // --- Main core
@@ -273,6 +276,8 @@ module top (
         .u_chn_o        ( tr_chn_o       ),
         .u_data_o       ( tr_data_o      ),
 
+        .stop           ( stop          ),
+
         .motor_0_in_1   ( motor_0_in_1  ),
         .motor_0_in_2   ( motor_0_in_2  ),
         .motor_1_in_1   ( motor_1_in_1  ),
@@ -296,7 +301,9 @@ module top (
 
         .tr_valid_o     ( tr_valid_o    ),
         .tr_chn_o       ( tr_chn_o      ),
-        .tr_data_o      ( tr_data_o     )
+        .tr_data_o      ( tr_data_o     ),
+
+        .stop           ( stop          )
     );
 
 
