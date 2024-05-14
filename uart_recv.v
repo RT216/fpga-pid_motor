@@ -10,6 +10,8 @@
 // Ver:     | Author    | Mod. Date     | Changes Made:
 // v1.0.0   | R.T.      | 2024/04/08    | Initial version
 // v1.0.1   | R.T       | 2024/05/04    | Tested set_rpm func.
+// v3.0.0   | R.T.      | 2024/05/14    | Update version number,
+//                                        tested PID functionally
 //**********************************************************************
 
 module UART_recv(

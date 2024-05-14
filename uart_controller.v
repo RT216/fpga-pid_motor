@@ -11,6 +11,8 @@
 // v1.0.1   | R.T       | 2024/05/04    | Tested set_rpm func.
 // v1.0.2   | R.T       | 2024/05/05    | Fixed Typo
 // v1.1.0   | R.T.      | 2024/05/06    | Added stop signal
+// v3.0.0   | R.T.      | 2024/05/14    | Update version number,
+//                                        tested PID functionally
 //**********************************************************************
 
 module UART_controller (

@@ -11,6 +11,8 @@
 // v1.1.0   | R.T.      | 2024/04/06    | Update the pwm signal output
 // v1.1.1   | R.T.      | 2024/04/22    | Removed pwm_clk
 // v1.2.0   | R.T.      | 2024/05/06    | Added stop signal
+// v3.0.0   | R.T.      | 2024/05/14    | Slower PWM frequency,
+//                                        tested PID functionally
 //**********************************************************************
 
 module PID_output_processor(
@@ -41,20 +43,20 @@ module PID_output_processor(
     parameter   NUM_CHN = 4;
     localparam  CHN_WIDTH = 3;
 
-    parameter  integer RPM_MAX = 1500;
+    parameter  integer RPM_MAX = 1024;
 
     parameter   CLK_FREQ = 27_000_000;  // Default = 27MHz
-    parameter   PWM_FREQ = 100_000;     // Default = 100kHz
+    parameter   PWM_FREQ = 27_000;     // Default = 10kHz
 
-    localparam integer PWM_PERIOD = CLK_FREQ / PWM_FREQ - 1;    // Default = 269
-    localparam integer COUNTER_WIDTH = $clog2(PWM_PERIOD + 1);  // Default = 9
+    localparam integer PWM_PERIOD = CLK_FREQ / PWM_FREQ - 1;    // Default = 999
+    localparam integer COUNTER_WIDTH = $clog2(PWM_PERIOD + 1);  // Default = 10
     
     // count from 0 to PWM_PERIOD
         // counter threshold = (PWM_PERIOD + 1) * duty cycle%
         // pwm_out = counter < counter threshold
     // counter threshold for 20% and 80% duty cycle
-    localparam integer PWM_DUTY_MIN = 0.2 * (PWM_PERIOD + 1);   // Default = 54
-    localparam integer PWM_DUTY_MAX = 0.8 * (PWM_PERIOD + 1);   // Default = 215
+    localparam integer PWM_DUTY_MIN = 0.2 * (PWM_PERIOD + 1);   // Default = 200
+    localparam integer PWM_DUTY_MAX = 0.8 * (PWM_PERIOD + 1);   // Default = 800
 
 
 //**********************************************************************
@@ -140,9 +142,9 @@ module PID_output_processor(
 
 // --- convert the PID output to the PWM signal---
 // --- Description:
-//      1. PID output range: -1500 ~ 1500
+//      1. PID output range: -1024 ~ 1024
 //      2. PWM duty cycle range: 20% ~ 80%
-//      3. PWM frequency: 1kHz
+//      3. PWM frequency: 27kHz
 
     // ---counter_pwm
     always @(posedge clk or negedge rstn) begin

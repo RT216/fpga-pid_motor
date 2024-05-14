@@ -12,6 +12,8 @@
 //                                      | rpm, and add some interface
 //                                      | for the PID output processor
 // v1.2.0   | R.T.      | 2024/04/08    | Add target rpm input
+// v3.0.0   | R.T.      | 2024/05/14    | Slower PID frequency, tested 
+//                                        PID functionally
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -63,7 +65,18 @@ module PID_Input_Processor(
 
     localparam NUM_CYCLE = 20;
 
-    parameter RPM_MAX = 1500;
+    parameter RPM_MAX = 1023;
+
+    parameter CLK_FREQ = 27_000_000;    // Default = 27MHz
+    parameter SLOW_RATE = 1350;          // Default = 1KHz
+    localparam CNT_WIDTH = $clog2(CLK_FREQ/SLOW_RATE) + 1; 
+
+    parameter PARAM_A1 = 128;
+    parameter PARAM_A2 = 64;
+    parameter PARAM_A3 = 64;
+    parameter PARAM_B0 = 26;
+    parameter PARAM_B1 = 13;
+    parameter PARAM_B2 = 13;
 
 //**********************************************************************
 // --- Input/Output Declaration
@@ -122,6 +135,9 @@ module PID_Input_Processor(
     reg     [DATA_WIDTH-1:0]    target_rpm_ch2;
     reg     [DATA_WIDTH-1:0]    target_rpm_ch3;
     reg     [DATA_WIDTH-1:0]    target_rpm_ch0;
+
+    reg     [CNT_WIDTH-1:0]     cnt_slow_down;
+    reg                         ready_slow_down;
 
 //**********************************************************************
 // --- Main core
@@ -228,52 +244,52 @@ module PID_Input_Processor(
     always @(posedge clk) begin
         case(param_chn) 
             0:begin
-                param_a1_i <= 128;
-                param_a2_i <= 64;
-                param_a3_i <= 64;
-                param_b0_i <= 26;
-                param_b1_i <= 13;
-                param_b2_i <= 13;
+                param_a1_i <= PARAM_A1;
+                param_a2_i <= PARAM_A2;
+                param_a3_i <= PARAM_A3;
+                param_b0_i <= PARAM_B0;
+                param_b1_i <= PARAM_B1;
+                param_b2_i <= PARAM_B2;
                 param_max_i <= RPM_MAX;
                 param_min_i <= -RPM_MAX;
             end
             1: begin
-                param_a1_i <= 128;
-                param_a2_i <= 64;
-                param_a3_i <= 64;
-                param_b0_i <= 26;
-                param_b1_i <= 13;
-                param_b2_i <= 13;
+                param_a1_i <= PARAM_A1;
+                param_a2_i <= PARAM_A2;
+                param_a3_i <= PARAM_A3;
+                param_b0_i <= PARAM_B0;
+                param_b1_i <= PARAM_B1;
+                param_b2_i <= PARAM_B2;
                 param_max_i <= RPM_MAX;
                 param_min_i <= -RPM_MAX;
             end
             2: begin
-                param_a1_i <= 128;
-                param_a2_i <= 64;
-                param_a3_i <= 64;
-                param_b0_i <= 26;
-                param_b1_i <= 13;
-                param_b2_i <= 13;
+                param_a1_i <= PARAM_A1;
+                param_a2_i <= PARAM_A2;
+                param_a3_i <= PARAM_A3;
+                param_b0_i <= PARAM_B0;
+                param_b1_i <= PARAM_B1;
+                param_b2_i <= PARAM_B2;
                 param_max_i <= RPM_MAX;
                 param_min_i <= -RPM_MAX;
             end
             3: begin
-                param_a1_i <= 128;
-                param_a2_i <= 64;
-                param_a3_i <= 64;
-                param_b0_i <= 26;
-                param_b1_i <= 13;
-                param_b2_i <= 13;
+                param_a1_i <= PARAM_A1;
+                param_a2_i <= PARAM_A2;
+                param_a3_i <= PARAM_A3;
+                param_b0_i <= PARAM_B0;
+                param_b1_i <= PARAM_B1;
+                param_b2_i <= PARAM_B2;
                 param_max_i <= RPM_MAX;
                 param_min_i <= -RPM_MAX;
             end
             default: begin
-                param_a1_i <= 128;
-                param_a2_i <= 64;
-                param_a3_i <= 64;
-                param_b0_i <= 26;
-                param_b1_i <= 13;
-                param_b2_i <= 13;
+                param_a1_i <= PARAM_A1;
+                param_a2_i <= PARAM_A2;
+                param_a3_i <= PARAM_A3;
+                param_b0_i <= PARAM_B0;
+                param_b1_i <= PARAM_B1;
+                param_b2_i <= PARAM_B2;
                 param_max_i <= RPM_MAX;
                 param_min_i <= -RPM_MAX;
             end
@@ -291,12 +307,35 @@ module PID_Input_Processor(
         end
     end
 
+    // ---slow down input frequency---
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            cnt_slow_down <= 0;
+            ready_slow_down <= 0;
+        end
+        else if(data_load & tready_o) begin
+            if(cnt_slow_down == CLK_FREQ/SLOW_RATE - 1) begin
+                cnt_slow_down <= 0;
+                ready_slow_down <= 1;
+            end
+            else begin
+                cnt_slow_down <= cnt_slow_down + 1;
+                ready_slow_down <= ready_slow_down;
+            end
+        end
+        else begin
+            cnt_slow_down <= 0;
+            ready_slow_down <= 0;
+        end
+    end
+
+
     // ---data cycle (channel) counter---
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             data_cycle <= NUM_CHN;
         end
-        else if(data_load & tready_o) begin
+        else if(data_load & tready_o & ready_slow_down) begin
             if(data_cycle == NUM_CHN) 
                 data_cycle <= 0;
             else 

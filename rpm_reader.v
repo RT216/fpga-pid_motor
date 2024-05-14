@@ -10,6 +10,8 @@
 // v1.0.0   | R.T.      | 2024/03/09    | Initial version
 // v1.0.1   | R.T.      | 2024/04/02    | Fixed the data width problem
 // v1.1.0   | R.T.      | 2024/04/05    | Add support for reverse rotation
+// v3.0.0   | R.T.      | 2024/05/14    | Modified the RPM counter limit,
+//                                        tested PID functionally
 //**********************************************************************
 
 module RPM_reader(
@@ -46,8 +48,8 @@ module RPM_reader(
 //**********************************************************************
 // --- Internal Signal Declaration
 //**********************************************************************
-    reg       [3:0]                 counter_m0;     // count for the encoder's pulse
-    reg       [15:0]                counter_m1;     // count for a high freq (10MHz)
+    reg       [15:0]                counter_m0;     // count for the encoder's pulse
+    reg       [31:0]                counter_m1;     // count for a high freq (10MHz)
     
     reg                             counter_clear;
     
@@ -125,13 +127,13 @@ module RPM_reader(
             counter_clear <= 0;
         end
         else begin
-            if (counter_m0 > 3 || counter_m1 > 8192) begin
+            if (counter_m0 > 5 || counter_m1 > 2000) begin
                 counter_clear   <=  1'b1;
                 rpm_valid_o     <=  1'b1;
                 if (!rotation_dir)  // forward rotation
-                    rpm_data_o  <=  {28'b0, counter_m0} * 32'd367647 / {16'b0, counter_m1};
+                    rpm_data_o  <=  {16'b0, counter_m0} * 32'd367647 / counter_m1;
                 else                // reverse rotation
-                    rpm_data_o  <=  -({28'b0, counter_m0} * 32'd367647 / {16'b0, counter_m1});
+                    rpm_data_o  <=  -({16'b0, counter_m0} * 32'd367647 / counter_m1);
             end
             else begin
                 counter_clear   <= 0;
