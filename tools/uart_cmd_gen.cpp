@@ -44,15 +44,21 @@ int main() {
 
         printf("The command is: \n");
         printf("1. \t1001_0001\t0x91\t\"set_rpm\"\n");
+        stringstream cmd;
+        cmd << "91";
         for (int i = 0; i < 4; i++) {
             int v1 = rpm2command(target_rpm[i], i) / 256;
             int v2 = rpm2command(target_rpm[i], i) % 256;
             printf("%d.1\t%04d_%04d\t0x%02X\t\"chn = %d\"\n", i, int2bin(v1/16), int2bin(v1%16), v1, i);
             printf("%d.2\t%04d_%04d\t0x%02X\t\"rpm = %d\"\n", i, int2bin(v2/16), int2bin(v2%16), v2, target_rpm[i]);
+            cmd << " " << hex << v1 << " " << hex << v2;
         }
         printf("4. \t1111_1111\t0xFF\t\"return\"\n");
+        cmd << " FF";
 
         cout << endl;
+        cout << "The command is: \n";
+        cout << cmd.str() << endl;
         cout << "Do you want to continue? (y/n) ";
         cin >> c;
     } while (c == 'y' || c == 'Y');
