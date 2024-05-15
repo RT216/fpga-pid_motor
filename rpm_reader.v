@@ -12,6 +12,7 @@
 // v1.1.0   | R.T.      | 2024/04/05    | Add support for reverse rotation
 // v3.0.0   | R.T.      | 2024/05/14    | Modified the RPM counter limit,
 //                                        tested PID functionally
+// v3.0.1   | R.T.      | 2024/05/15    | Modified Parameters
 //**********************************************************************
 
 module RPM_reader(
@@ -127,7 +128,7 @@ module RPM_reader(
             counter_clear <= 0;
         end
         else begin
-            if (counter_m0 > 5 || counter_m1 > 2000) begin
+            if (counter_m0 > 3 || counter_m1 > 9999) begin
                 counter_clear   <=  1'b1;
                 rpm_valid_o     <=  1'b1;
                 if (!rotation_dir)  // forward rotation

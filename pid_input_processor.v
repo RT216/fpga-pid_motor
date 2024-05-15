@@ -14,6 +14,7 @@
 // v1.2.0   | R.T.      | 2024/04/08    | Add target rpm input
 // v3.0.0   | R.T.      | 2024/05/14    | Slower PID frequency, tested 
 //                                        PID functionally
+// v3.0.1   | R.T.      | 2024/05/15    | Modified Parameters
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -68,15 +69,15 @@ module PID_Input_Processor(
     parameter RPM_MAX = 1023;
 
     parameter CLK_FREQ = 27_000_000;    // Default = 27MHz
-    parameter SLOW_RATE = 1350;          // Default = 1KHz
+    parameter SLOW_RATE = 500;          // Default = 1KHz
     localparam CNT_WIDTH = $clog2(CLK_FREQ/SLOW_RATE) + 1; 
 
-    parameter PARAM_A1 = 128;
+    parameter PARAM_A1 = 127;
     parameter PARAM_A2 = 64;
-    parameter PARAM_A3 = 64;
-    parameter PARAM_B0 = 26;
-    parameter PARAM_B1 = 13;
-    parameter PARAM_B2 = 13;
+    parameter PARAM_A3 = 42;
+    parameter PARAM_B0 = 125;
+    parameter PARAM_B1 = 42;
+    parameter PARAM_B2 = 7;
 
 //**********************************************************************
 // --- Input/Output Declaration
