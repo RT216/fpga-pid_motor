@@ -16,6 +16,7 @@
 // v1.3.0   | R.T.      | 2024/05/06    | Added stop signal
 // v3.0.0   | R.T.      | 2024/05/14    | Update version number,
 //                                        tested PID functionally
+// v3.1.0   | R.T.      | 2024/05/17    | Refactoring the RPM_reader
 //**********************************************************************
 
 module top (
@@ -128,16 +129,6 @@ module top (
 //**********************************************************************
 
 //**********************************************************************
-// --- Module: sample_clk_gen
-// --- Description:
-//      1. Generate the sample clock (10MHz) for the RPM reader
-//**********************************************************************
-    Gowin_rPLL sample_clk_gen_inst (
-        .clkin          ( clk           ),
-        .clkout         ( sample_clk    )
-    );
-
-//**********************************************************************
 // --- Module: RPM_reader
 // --- Description:
 //      1. Quadruple the encoder's pulse
@@ -145,7 +136,6 @@ module top (
 //**********************************************************************
     RPM_reader RPM_reader_inst0(
         .clk            ( clk           ),
-        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc0_a        ),
@@ -157,7 +147,6 @@ module top (
 
     RPM_reader RPM_reader_inst1(
         .clk            ( clk           ),
-        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc1_a        ),
@@ -169,7 +158,6 @@ module top (
 
     RPM_reader RPM_reader_inst2(
         .clk            ( clk           ),
-        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc2_a        ),
@@ -181,7 +169,6 @@ module top (
 
     RPM_reader RPM_reader_inst3(
         .clk            ( clk           ),
-        .sample_clk     ( sample_clk    ),
         .rstn           ( rstn          ),
         
         .enc_a          ( enc3_a        ),

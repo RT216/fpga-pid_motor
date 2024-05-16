@@ -15,6 +15,7 @@
 // v3.0.0   | R.T.      | 2024/05/14    | Slower PID frequency, tested 
 //                                        PID functionally
 // v3.0.1   | R.T.      | 2024/05/15    | Modified Parameters
+// v3.1.0   | R.T.      | 2024/05/17    | Modified Parameters
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -69,15 +70,15 @@ module PID_Input_Processor(
     parameter RPM_MAX = 1023;
 
     parameter CLK_FREQ = 27_000_000;    // Default = 27MHz
-    parameter SLOW_RATE = 500;          // Default = 1KHz
-    localparam CNT_WIDTH = $clog2(CLK_FREQ/SLOW_RATE) + 1; 
+    parameter PID_FREQ = 800;          // Default = 1KHz
+    localparam CNT_WIDTH = $clog2(CLK_FREQ/PID_FREQ) + 1; 
 
     parameter PARAM_A1 = 127;
     parameter PARAM_A2 = 64;
-    parameter PARAM_A3 = 42;
-    parameter PARAM_B0 = 125;
-    parameter PARAM_B1 = 42;
-    parameter PARAM_B2 = 7;
+    parameter PARAM_A3 = 64;
+    parameter PARAM_B0 = 26;
+    parameter PARAM_B1 = 13;
+    parameter PARAM_B2 = 13;
 
 //**********************************************************************
 // --- Input/Output Declaration
@@ -315,7 +316,7 @@ module PID_Input_Processor(
             ready_slow_down <= 0;
         end
         else if(data_load & tready_o) begin
-            if(cnt_slow_down == CLK_FREQ/SLOW_RATE - 1) begin
+            if(cnt_slow_down == CLK_FREQ/PID_FREQ - 1) begin
                 cnt_slow_down <= 0;
                 ready_slow_down <= 1;
             end
@@ -377,8 +378,5 @@ module PID_Input_Processor(
             data_ref_i <= target_rpm_ch3;
         end
     end
-
-
-
 
 endmodule
