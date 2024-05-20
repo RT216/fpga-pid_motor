@@ -13,6 +13,7 @@
 // v1.1.0   | R.T.      | 2024/05/06    | Added stop signal
 // v3.0.0   | R.T.      | 2024/05/14    | Update version number,
 //                                        tested PID functionally
+// v3.2.0   | R.T.      | 2024/05/21    | Stop signal now rst to 1
 //**********************************************************************
 
 module UART_controller (
@@ -205,7 +206,7 @@ module UART_controller (
             tr_chn_o            <= 0;
             tr_data_o           <= 0;
             tr_valid_o          <= 0;
-            stop                <= 0;
+            stop                <= 4'b1111;
         end
         else begin
             if (current_rx_valid) begin

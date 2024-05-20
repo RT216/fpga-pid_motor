@@ -13,6 +13,8 @@
 // v1.2.0   | R.T.      | 2024/05/06    | Added stop signal
 // v3.0.0   | R.T.      | 2024/05/14    | Slower PWM frequency,
 //                                        tested PID functionally
+// v3.2.0   | R.T.      | 2024/05/21    | Now when stop, the motor will brake
+//                                      | instead of being turned off
 //**********************************************************************
 
 module PID_output_processor(
@@ -205,41 +207,61 @@ module PID_output_processor(
             motor_3_in_2 <= 0;
         end
         else begin
-            if (u_data_ch0[DATA_WIDTH-1] == 1'b0) begin
-                motor_0_in_1 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // forward pwm
-                motor_0_in_2 <= 0;                                  // fast decay
+            if (stop[0]) begin
+                motor_0_in_1 <= 1;
+                motor_0_in_2 <= 1;
             end
-            else begin
-                motor_0_in_1 <= 0;                                  // fast decay
-                motor_0_in_2 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // reverse pwm
-            end
+            else
+                if (u_data_ch0[DATA_WIDTH-1] == 1'b0) begin
+                    motor_0_in_1 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // forward pwm
+                    motor_0_in_2 <= 0;                                  // fast decay
+                end
+                else begin
+                    motor_0_in_1 <= 0;                                  // fast decay
+                    motor_0_in_2 <= (counter_pwm < pwm_thr_ch0)? 1 : 0; // reverse pwm
+                end
 
-            if (u_data_ch1[DATA_WIDTH-1] == 1'b0) begin
-                motor_1_in_1 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // forward pwm
-                motor_1_in_2 <= 0;                                  // fast decay
+            if (stop[1]) begin
+                motor_1_in_1 <= 1;
+                motor_1_in_2 <= 1;
             end
-            else begin
-                motor_1_in_1 <= 0;                                  // fast decay
-                motor_1_in_2 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // reverse pwm
-            end
+            else
+                if (u_data_ch1[DATA_WIDTH-1] == 1'b0) begin
+                    motor_1_in_1 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // forward pwm
+                    motor_1_in_2 <= 0;                                  // fast decay
+                end
+                else begin
+                    motor_1_in_1 <= 0;                                  // fast decay
+                    motor_1_in_2 <= (counter_pwm < pwm_thr_ch1)? 1 : 0; // reverse pwm
+                end
 
-            if (u_data_ch2[DATA_WIDTH-1] == 1'b0) begin
-                motor_2_in_1 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // forward pwm
-                motor_2_in_2 <= 0;                                  // fast decay
+            if (stop[2]) begin
+                motor_2_in_1 <= 1;
+                motor_2_in_2 <= 1;
             end
-            else begin
-                motor_2_in_1 <= 0;                                  // fast decay
-                motor_2_in_2 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // reverse pwm
-            end
+            else
+                if (u_data_ch2[DATA_WIDTH-1] == 1'b0) begin
+                    motor_2_in_1 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // forward pwm
+                    motor_2_in_2 <= 0;                                  // fast decay
+                end
+                else begin
+                    motor_2_in_1 <= 0;                                  // fast decay
+                    motor_2_in_2 <= (counter_pwm < pwm_thr_ch2)? 1 : 0; // reverse pwm
+                end
 
-            if (u_data_ch3[DATA_WIDTH-1] == 1'b0) begin
-                motor_3_in_1 <= (counter_pwm < pwm_thr_ch3)? 1 : 0; // forward pwm
-                motor_3_in_2 <= 0;                                  // fast decay
+            if (stop[3]) begin
+                motor_3_in_1 <= 1;
+                motor_3_in_2 <= 1;
             end
-            else begin
-                motor_3_in_1 <= 0;                                  // fast decay
-                motor_3_in_2 <= (counter_pwm < pwm_thr_ch3)? 1 : 0; // reverse pwm
-            end
+            else
+                if (u_data_ch3[DATA_WIDTH-1] == 1'b0) begin
+                    motor_3_in_1 <= (counter_pwm < pwm_thr_ch3)? 1 : 0; // forward pwm
+                    motor_3_in_2 <= 0;                                  // fast decay
+                end
+                else begin
+                    motor_3_in_1 <= 0;                                  // fast decay
+                    motor_3_in_2 <= ( counter_pwm < pwm_thr_ch3)? 1 : 0; // reverse pwm
+                end
         end
     end
 

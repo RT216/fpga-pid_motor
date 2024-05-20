@@ -16,6 +16,7 @@
 //                                        PID functionally
 // v3.0.1   | R.T.      | 2024/05/15    | Modified Parameters
 // v3.1.0   | R.T.      | 2024/05/17    | Modified Parameters
+// v3.2.0   | R.T.      | 2024/05/21    | Modified Parameters
 //**********************************************************************
 // `define AUTOMATIC_MEMORY
 
@@ -70,7 +71,7 @@ module PID_Input_Processor(
     parameter RPM_MAX = 1023;
 
     parameter CLK_FREQ = 27_000_000;    // Default = 27MHz
-    parameter PID_FREQ = 800;          // Default = 1KHz
+    parameter PID_FREQ = 1500;          // Default = 1KHz
     localparam CNT_WIDTH = $clog2(CLK_FREQ/PID_FREQ) + 1; 
 
     parameter PARAM_A1 = 127;
