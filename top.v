@@ -17,6 +17,7 @@
 // v3.0.0   | R.T.      | 2024/05/14    | Update version number,
 //                                        tested PID functionally
 // v3.1.0   | R.T.      | 2024/05/17    | Refactoring the RPM_reader
+// v3.3.0   | R.T.      | 2024/05/24    | Add brake signal
 //**********************************************************************
 
 module top (
@@ -123,6 +124,7 @@ module top (
     wire    [DATA_WIDTH-1:0]    tr_data_o;
 
     wire    [3:0]               stop;
+    wire                        brake;
 
 //**********************************************************************
 // --- Main core
@@ -266,6 +268,7 @@ module top (
         .u_data_o       ( u_data_o      ),
 
         .stop           ( stop          ),
+        .brake          ( brake         ),
 
         .motor_0_in_1   ( motor_0_in_1  ),
         .motor_0_in_2   ( motor_0_in_2  ),
@@ -292,7 +295,8 @@ module top (
         .tr_chn_o       ( tr_chn_o      ),
         .tr_data_o      ( tr_data_o     ),
 
-        .stop           ( stop          )
+        .stop           ( stop          ),
+        .brake          ( brake         )
     );
 
 

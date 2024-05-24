@@ -15,6 +15,7 @@
 // v3.0.1   | R.T.      | 2024/05/15    | Modified Parameters
 // v3.1.0   | R.T.      | 2024/05/17    | Refactoring the RPM_reader
 // v3.2.0   | R.T.      | 2024/05/21    | Added readability for RPM calculation
+// v3.3.0   | R.T.      | 2024/05/24    | Added triple-synchronizing
 //**********************************************************************
 
 module RPM_reader(
@@ -64,6 +65,13 @@ module RPM_reader(
     reg       [31:0]                counter_a;
     reg       [31:0]                counter_a_reg;
     reg       [31:0]                counter_b;
+
+    reg                             enc_a_reg1;
+    reg                             enc_a_reg2;
+    reg                             enc_a_reg3;
+    reg                             enc_b_reg1;
+    reg                             enc_b_reg2;
+    reg                             enc_b_reg3;
     
     reg                             current_enc_a;
     reg                             current_enc_b;
@@ -72,6 +80,27 @@ module RPM_reader(
 // --- Main Core
 //**********************************************************************
 
+// --- triple-synchronizing
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            enc_a_reg1 <= 1'b0;
+            enc_a_reg2 <= 1'b0;
+            enc_a_reg3 <= 1'b0;
+            enc_b_reg1 <= 1'b0;
+            enc_b_reg2 <= 1'b0;
+            enc_b_reg3 <= 1'b0;
+        end
+        else begin
+            enc_a_reg1 <= enc_a;
+            enc_a_reg2 <= enc_a_reg1;
+            enc_a_reg3 <= enc_a_reg2;
+            enc_b_reg1 <= enc_b;
+            enc_b_reg2 <= enc_b_reg1;
+            enc_b_reg3 <= enc_b_reg2;
+        end
+    end
+
+
 // --- Encoder sampling ---
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
@@ -79,8 +108,8 @@ module RPM_reader(
             current_enc_b    <= 0;
         end
         else begin
-            current_enc_a <= enc_a;
-            current_enc_b <= enc_b;
+            current_enc_a <= enc_a_reg3;
+            current_enc_b <= enc_b_reg3;
         end
     end
     
@@ -97,12 +126,12 @@ module RPM_reader(
             rpm_data_o <= 0;
         end
         else begin
-            if (!enc_a && current_enc_a) begin
+            if (enc_a_reg3 && !current_enc_a) begin
                 counter_a <= 0;
                 counter_a_reg <= counter_a;
                 rpm_valid_o <= 0;
             end
-            else if (!enc_b && current_enc_b) begin
+            else if (enc_b_reg3 && !current_enc_b) begin
                 counter_b <= 0;
 
                 if (counter_a > COUNTER_MAX || counter_b > COUNTER_MAX) begin

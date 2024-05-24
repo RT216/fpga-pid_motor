@@ -14,6 +14,8 @@
 // v3.0.0   | R.T.      | 2024/05/14    | Update version number,
 //                                        tested PID functionally
 // v3.2.0   | R.T.      | 2024/05/21    | Stop signal now rst to 1
+// v3.3.0   | R.T.      | 2024/05/24    | Add parameter for dead zone
+//                                      | and brake siganl
 //**********************************************************************
 
 module UART_controller (
@@ -26,7 +28,8 @@ module UART_controller (
     tr_chn_o,
     tr_data_o,
 
-    stop
+    stop,
+    brake
 );
 
 //**********************************************************************
@@ -36,6 +39,8 @@ module UART_controller (
 
     parameter NUM_CHN = 4;
     localparam CHN_WIDTH = 3;
+
+    parameter MIN_RPM = 4;
 
 //**********************************************************************
 // --- Input/Output Declaration
@@ -50,6 +55,7 @@ module UART_controller (
     output reg  [DATA_WIDTH-1:0]    tr_data_o;
 
     output reg   [3:0]              stop;
+    output wire                      brake;
 
 //**********************************************************************
 // --- Internal Signal Declaration
@@ -213,7 +219,7 @@ module UART_controller (
                 tr_chn_o        <= current_rx_chn;
                 tr_data_o       <= current_rx_number;
                 tr_valid_o      <= 1;
-                if(current_rx_number < 16) begin
+                if(current_rx_number < MIN_RPM) begin
                     case (current_rx_chn)
                         0: stop[0] <= 1;
                         1: stop[1] <= 1;
@@ -240,5 +246,8 @@ module UART_controller (
             end
         end
     end
+
+// brake siganl
+    assign brake = (stop==4'b1111)?1'b1:1'b0;
     
 endmodule
