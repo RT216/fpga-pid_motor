@@ -18,6 +18,8 @@
 //                                        tested PID functionally
 // v3.1.0   | R.T.      | 2024/05/17    | Refactoring the RPM_reader
 // v3.3.0   | R.T.      | 2024/05/24    | Add brake signal
+// v4.0.0   | R.T.      | 2024/05/29    | Add UART driver to send the
+//                                      | friction factor
 //**********************************************************************
 
 module top (
@@ -34,6 +36,7 @@ module top (
     enc3_b, 
 
     uart_rx,
+    uart_tx,
 
     motor_0_in_1,
     motor_0_in_2,
@@ -73,6 +76,8 @@ module top (
     input wire                      enc3_b;
 
 // --- output ---
+    output wire                     uart_tx;
+
     output wire                     motor_0_in_1;
     output wire                     motor_0_in_2;
     output wire                     motor_1_in_1;
@@ -299,5 +304,33 @@ module top (
         .brake          ( brake         )
     );
 
+//**********************************************************************
+// --- Module: UART_driver
+// --- Description:
+//          1. send friction data via UART
+//**********************************************************************
+
+    UART_driver UART_driver_inst(
+        .clk            ( clk           ),
+        .rstn           ( rstn          ),
+
+        .rpm0_ready     ( rpm0_ready    ),
+        .rpm1_ready     ( rpm1_ready    ),
+        .rpm2_ready     ( rpm2_ready    ),
+        .rpm3_ready     ( rpm3_ready    ),
+
+        .rpm0_data_o    ( rpm0_data_o   ),
+        .rpm1_data_o    ( rpm1_data_o   ),
+        .rpm2_data_o    ( rpm2_data_o   ),
+        .rpm3_data_o    ( rpm3_data_o   ),
+
+        .u_valid_o      ( u_valid_o     ),
+        .u_chn_o        ( u_chn_o       ),
+        .u_data_o       ( u_data_o      ),
+
+        .stop           ( stop          ),
+
+        .uart_tx        ( uart_tx       )
+);
 
 endmodule
